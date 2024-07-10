@@ -1,0 +1,23 @@
+recordId = 123;
+
+//Basic
+
+// Via ID
+zoho.crm.getRecordById("Leads", recordId);
+
+// Multiple records
+zoho.crm.getRecords("Leads", 1, 200);
+
+// Search records with criteria
+zoho.crm.searchRecords("Leads", "(Lead_Status:equals:Lost Lead)", 1, 200);
+
+// Get related records
+zoho.crm.getRelatedRecords("Tasks","Leads", recordId, 1, 200);
+
+// Advance
+
+optionalMap = Map();
+optionalMap.put("trigger", {"workflow"});
+connection = "sample_conn";
+
+zoho.crm.getRecordById("Leads", recordId, optionalMap, connection); 
