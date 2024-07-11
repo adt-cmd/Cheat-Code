@@ -1,0 +1,28 @@
+// Within the creator app 
+
+record = Account[ID == 4597916000000078026];
+record.Account_Name
+record.Website
+record.Address_Information.address_line_1
+
+// Outside the Creator app
+
+ownerName = "owner-username";
+appLinkName = "application-name";
+recordId = 4597916000000078026;
+
+// Via ID
+zoho.creator.getRecordById(ownerName, appLinkName, "Form_Report_Name", recordId, "zcreator_conn");
+
+// Multiple records
+
+pageNumber = 1
+recordLimit = 200
+
+// All Records
+zoho.creator.getRecords(ownerName, appLinkName, "Form_Report_Name", "", pageNumber, recordLimit, "zcreator_conn");
+
+// Via Criteria
+fieldValue = "sample value";
+
+zoho.creator.getRecords(ownerName, appLinkName, "Form_Report_Name", "Field_Link_Name == \"" + fieldValue + "\"", pageNumber, recordLimit, "zcreator_conn");
