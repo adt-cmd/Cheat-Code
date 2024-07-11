@@ -1,4 +1,4 @@
-// Within the creator app 
+// Within the Creator app 
 
 record = Account[ID == 4597916000000078026];
 record.Account_Name = "Account Test";
@@ -9,6 +9,7 @@ record.Address_Information.address_line_1 = "FOF St.";
 
 ownerName = "owner-username";
 appLinkName = "application-name";
+formReportName = "All_Accounts";
 recordId = 4597916000000078026;
 
 updateMap = Map();
@@ -25,4 +26,4 @@ updateMap.put("Account_Name", "Test Account");
 updateMap.put("Website", { "url": "https://www.test.com" });
 updateMap.put("Address_Information", addressMap);
 
-zoho.creator.updateRecord(ownerName, appLinkName, "Form_Report_Name", recordId, updateMap, optionalMap, "zcreator_conn");
+zoho.creator.updateRecord(ownerName, appLinkName, formReportName, recordId, updateMap, optionalMap, "zcreator_conn");

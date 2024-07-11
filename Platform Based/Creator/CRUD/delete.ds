@@ -6,10 +6,11 @@ delete from Account[ID == 4597916000000078026];
 
 ownerName = "owner-username";
 appLinkName = "application-name";
+formReportName = "All_Accounts";
 recordId = 3888833000000114027
 
 delete = invokeurl [
-    url: "https://creator.zoho.com/api/v2.1/" + ownerName + "/" + appLinkName + "/report/Form_Report_Name/" + recordId
+    url: "https://creator.zoho.com/api/v2.1/" + ownerName + "/" + appLinkName + "/report/" + formReportName + "/" + recordId
     type: DELETE
     connection: "zcreator_conn"
 ];

@@ -1,4 +1,4 @@
-// Within the creator app 
+// Within the Creator app 
 
 create = insert into Account
 [
@@ -15,6 +15,7 @@ create = insert into Account
 
 ownerName = "owner-username";
 appLinkName = "application-name";
+formName = "Account";
 
 createMap = Map();
 optionalMap = Map();
@@ -30,4 +31,4 @@ createMap.put("Account_Name", "Test Account");
 createMap.put("Website", { "url": "https://www.test.com" });
 createMap.put("Address_Information", addressMap);
 
-zoho.creator.createRecord(ownerName, appLinkName, "Form_Name", createMap, optionalMap, "zcreator_conn");
+zoho.creator.createRecord(ownerName, appLinkName, formName, createMap, optionalMap, "zcreator_conn");
