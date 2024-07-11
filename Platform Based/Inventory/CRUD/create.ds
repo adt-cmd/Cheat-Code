@@ -16,9 +16,9 @@ createMap.put("custom_fields",customFields);
 
 // Basic
 
-zoho.books.createRecord("salesorders", orgId, createMap);
+zoho.inventory.createRecord("salesorders", orgId, createMap);
 
 // Advance 
 
 connection = "sample_conn";
-zoho.books.createRecord("salesorders", orgId, createMap, connection); 
+zoho.inventory.createRecord("salesorders", orgId, createMap, connection); 
