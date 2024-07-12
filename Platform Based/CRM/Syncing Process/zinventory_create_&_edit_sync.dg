@@ -15,7 +15,7 @@ existingRecord = zoho.inventory.getRecordsByID("items", orgId, recordFID);
 // Fields to be synced
 syncMap.put("name", record.get("Product_Name"));
 syncMap.put("sku", record.get("Product_Code"));
-syncMap.put("sales_rate", record.get("Unit_Price"));
+syncMap.put("rate", record.get("Unit_Price"));
 syncMap.put("category_name", record.get("Product_Category"));
 
 // Check for existing record to avoid duplicate entries
