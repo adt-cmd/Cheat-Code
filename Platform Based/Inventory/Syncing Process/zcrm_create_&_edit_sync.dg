@@ -19,7 +19,7 @@ existingRecord = zoho.crm.searchRecords("Products", "(ZInventory_ID:equals:" + r
 syncMap.put("Product_Name", recordData.get("name"));
 syncMap.put("Product_Code", recordData.get("sku")); 
 syncMap.put("Unit_Price", recordData.get("sales_rate"));
-syncMap.put("Prodcuct_Category", recordData.get("category_name"));
+syncMap.put("Product_Category", recordData.get("category_name"));
 syncMap.put("ZInventory_ID", recordId);
 
 // Check for existing record to avoid duplicate entries
