@@ -1,0 +1,43 @@
+// Item Module
+
+// ZInventory Variables
+
+orgId = organization.get("organization_id");
+recordId = item.get("item_id");
+record = zoho.inventory.getRecordsByID("items", orgId, recordId);
+recordData = record.get("item");
+syncMap = Map();
+
+// Optional map is required when requesting outside the current app
+
+optionalMap = Map();
+
+// ZCRM Variables
+
+// Search existing record in ZCRM
+existingRecord = zoho.crm.searchRecords("Products", "(ZInventory_ID:equals:" + recordId + ")", 1, 1, "zcrm_conn");
+
+// Fields to be synced
+syncMap.put("Product_Name", recordData.get("name"));
+syncMap.put("Product_Code", recordData.get("sku")); 
+syncMap.put("Unit_Price", recordData.get("sales_rate"));
+syncMap.put("Prodcuct_Category", recordData.get("category_name"));
+syncMap.put("ZInventory_ID", recordId);
+
+// Check for existing record to avoid duplicate entries
+if(existingRecord.isEmpty())
+{
+	// If there's no existing record in ZCRM then it will create a new record
+	// Sync creation request from ZInventory to ZCRM
+	sync = zoho.crm.createRecord("Products", syncMap, optionalMap, "zcrm_conn");
+	info createRecord;
+}
+else
+{
+	// If there's an existing record in ZCRM then it will update the existing record
+	// Sync update request from ZInventory to ZCRM
+	existingRecordId = existingRecord.getJSON("id");
+	sync = zoho.crm.updateRecord("Products", existingRecordId, syncMap,optionalMap, "zcrm_conn");
+}
+// Checking request response
+info sync;

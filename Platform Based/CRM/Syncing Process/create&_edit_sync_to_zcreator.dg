@@ -14,8 +14,7 @@ appLinkName = "creator-and-crm";
 // Optional map is required when requesting outside the current app
 optionalMap = Map();
 
-// Supplying fields in ZCreator
-
+// Fields to be synced
 accountMap.put("CRM_Id",accountId);
 accountMap.put("Account_Name",account.get("Account_Name"));
 accountMap.put("Website",{"url":account.get("Website")});
@@ -45,6 +44,5 @@ else
 	existingRecordInCreatorId = existingRecordInCreator.get("data").getJSON("ID");
 	accountSyncing = zoho.creator.updateRecord(ownerName, appLinkName, "All_Accounts", existingRecordInCreatorId, accountMap, optionalMap, "zcreator_conn");
 }
-
 // Checking request response
 info accountSyncing;
