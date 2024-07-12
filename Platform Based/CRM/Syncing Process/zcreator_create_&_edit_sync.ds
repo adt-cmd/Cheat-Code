@@ -1,0 +1,48 @@
+// ZCRM variables
+account = zoho.crm.getRecordById("Accounts",accountId);
+accountMap = Map();
+
+// Map for the address field subfield values
+accountAddressList = Map();
+
+// ZCreator variables
+ownerName = "althon.devtac";
+appLinkName = "creator-and-crm";
+
+// Optional map is required when requesting outside the current app
+optionalMap = Map();
+
+// Supplying fields in ZCreator
+
+accountMap.put("CRM_Id",accountId);
+accountMap.put("Account_Name",account.get("Account_Name"));
+accountMap.put("Website",{"url":account.get("Website")});
+
+// Supplying the address field subfields
+accountAddressList.put("address_line_1",account.get("Billing_Street"));
+accountAddressList.put("district_city",account.get("Billing_City"));
+accountAddressList.put("state_province",account.get("Billing_State"));
+accountAddressList.put("postal_Code",account.get("Billing_Code"));
+accountAddressList.put("country",account.get("Billing_Country"));
+
+// Adding the list of subfield values in address field
+accountMap.put("Address_Information",accountAddressList);
+
+// Check for existing record to avoid duplicate entries
+existingRecordInCreator = zoho.creator.getRecords(ownerName, appLinkName, "All_Accounts", "CRM_Id == \"" + accountId + "\"", 1, 1, "zcreator_conn");
+if(existingRecordInCreator.get("data").isNull())
+{
+	// If there's no existing record in ZCreator then it will create a new record
+	// Sync creation request from ZCRM to ZCreator
+	accountSyncing = zoho.creator.createRecord(ownerName, appLinkName, "Account", accountMap, optionalMap, "zcreator_conn");
+}
+else
+{
+	// If there's an existing record in ZCreator then it will update the existing record
+	// Sync update request from ZCRM to ZCreator
+	existingRecordInCreatorId = existingRecordInCreator.get("data").getJSON("ID");
+	accountSyncing = zoho.creator.updateRecord(ownerName, appLinkName, "All_Accounts", existingRecordInCreatorId, accountMap, optionalMap, "zcreator_conn");
+}
+
+// Checking request response
+info accountSyncing;
