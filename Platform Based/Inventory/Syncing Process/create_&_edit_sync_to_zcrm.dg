@@ -1,7 +1,6 @@
 // Item Module
 
 // ZInventory Variables
-
 orgId = organization.get("organization_id");
 recordId = item.get("item_id");
 record = zoho.inventory.getRecordsByID("items", orgId, recordId);
@@ -9,7 +8,6 @@ recordData = record.get("item");
 syncMap = Map();
 
 // Optional map is required when requesting outside the current app
-
 optionalMap = Map();
 
 // ZCRM Variables

@@ -1,11 +1,12 @@
 // Account Module Sync
 
 // ZCRM variables
-account = zoho.crm.getRecordById("Accounts",accountId);
-accountMap = Map();
+recordId = 6943258344300003;
+record = zoho.crm.getRecordById("Accounts",recordId);
+syncMap = Map();
 
 // Map for the address field subfield values
-accountAddressList = Map();
+recordAddressList = Map();
 
 // ZCreator variables
 ownerName = "althon.devtac";
@@ -15,34 +16,34 @@ appLinkName = "creator-and-crm";
 optionalMap = Map();
 
 // Fields to be synced
-accountMap.put("CRM_Id",accountId);
-accountMap.put("Account_Name",account.get("Account_Name"));
-accountMap.put("Website",{"url":account.get("Website")});
+syncMap.put("CRM_Id",recordId);
+syncMap.put("Account_Name",record.get("record_Name"));
+syncMap.put("Website",{"url":record.get("Website")});
 
 // Supplying the address field subfields
-accountAddressList.put("address_line_1",account.get("Billing_Street"));
-accountAddressList.put("district_city",account.get("Billing_City"));
-accountAddressList.put("state_province",account.get("Billing_State"));
-accountAddressList.put("postal_Code",account.get("Billing_Code"));
-accountAddressList.put("country",account.get("Billing_Country"));
+recordAddressList.put("address_line_1",record.get("Billing_Street"));
+recordAddressList.put("district_city",record.get("Billing_City"));
+recordAddressList.put("state_province",record.get("Billing_State"));
+recordAddressList.put("postal_Code",record.get("Billing_Code"));
+recordAddressList.put("country",record.get("Billing_Country"));
 
 // Adding the list of subfield values in address field
-accountMap.put("Address_Information",accountAddressList);
+syncMap.put("Address_Information",recordAddressList);
 
 // Check for existing record to avoid duplicate entries
-existingRecordInCreator = zoho.creator.getRecords(ownerName, appLinkName, "All_Accounts", "CRM_Id == \"" + accountId + "\"", 1, 1, "zcreator_conn");
-if(existingRecordInCreator.get("data").isNull())
+existingRecord = zoho.creator.getRecords(ownerName, appLinkName, "All_Accounts", "CRM_Id == \"" + recordId + "\"", 1, 1, "zcreator_conn");
+if(existingRecord.get("data").isNull())
 {
 	// If there's no existing record in ZCreator then it will create a new record
 	// Sync creation request from ZCRM to ZCreator
-	accountSyncing = zoho.creator.createRecord(ownerName, appLinkName, "Account", accountMap, optionalMap, "zcreator_conn");
+	sync = zoho.creator.createRecord(ownerName, appLinkName, "Account", syncMap, optionalMap, "zcreator_conn");
 }
 else
 {
 	// If there's an existing record in ZCreator then it will update the existing record
 	// Sync update request from ZCRM to ZCreator
-	existingRecordInCreatorId = existingRecordInCreator.get("data").getJSON("ID");
-	accountSyncing = zoho.creator.updateRecord(ownerName, appLinkName, "All_Accounts", existingRecordInCreatorId, accountMap, optionalMap, "zcreator_conn");
+	existingRecordId = existingRecord.get("data").getJSON("ID");
+	sync = zoho.creator.updateRecord(ownerName, appLinkName, "All_Accounts", existingRecordId, syncMap, optionalMap, "zcreator_conn");
 }
 // Checking request response
-info accountSyncing;
+info sync;

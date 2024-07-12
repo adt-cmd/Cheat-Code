@@ -1,0 +1,37 @@
+// Product Module Synce
+
+// ZCRM Variables
+recordId = 6344724000000472755;
+record = zoho.crm.getRecordById("Products", recordId);
+recordFID = record.get("ZInventory_ID");
+syncMap = Map();
+optionalMap = Map();
+
+// ZInventory Variables
+orgId = "857520875";
+// Search existing record in ZInventory
+existingRecord = zoho.inventory.getRecordsByID("items", orgId, recordFID);
+
+// Fields to be synced
+syncMap.put("name", record.get("Product_Name"));
+syncMap.put("sku", record.get("Product_Code"));
+syncMap.put("sales_rate", record.get("Unit_Price"));
+syncMap.put("category_name", record.get("Product_Category"));
+
+// Check for existing record to avoid duplicate entries
+if (existingRecord.isNull()) {
+	// If there's no existing record in ZInventory then it will create a new record
+	// Sync creation request from ZCRM to ZInventory
+	sync = zoho.inventory.createRecord("items", orgId, syncMap, "zinventory_conn");
+	if (sync.get("code") == 0) {
+		// If a record is successfully created in ZInventory, we need to populate the foreign ID field in ZCRM for reference and future synchronization
+		recordFID = sync.get("item").get("item_id");
+		populateRecordFID = zoho.crm.updateRecord("Products", recordId, { "ZInventory_ID": recordFID });
+	}
+} else {
+	// If there's an existing record in ZInventory then it will update the existing record
+	// Sync update request from ZCRM to ZInventory
+	sync = zoho.inventory.updateRecord("items", orgId, recordFID.toLong(), syncMap, "zinventory_conn");
+}
+// Checking request response
+info sync;
