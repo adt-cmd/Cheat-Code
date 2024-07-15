@@ -1,0 +1,34 @@
+recordId = 6344724000000509042;
+record = zoho.crm.getRecordById("Products", recordId);
+recordFID = record.get("ZBooks_ID");
+syncMap = Map();
+optionalMap = Map();
+
+// ZBooks Variables
+orgId = "857520875";
+// Search existing record in ZBooks
+existingRecord = zoho.books.getRecordsByID("items", orgId, recordFID);
+
+// Fields to be synced
+syncMap.put("name", record.get("Product_Name"));
+syncMap.put("sku", record.get("Product_Code"));
+syncMap.put("rate", record.get("Unit_Price"));
+syncMap.put("category_name", record.get("Product_Category"));
+
+// Check for existing record to avoid duplicate entries
+if (existingRecord.isNull()) {
+	// If there's no existing record in ZBooks then it will create a new record
+	// Sync creation request from ZCRM to ZBooks
+	sync = zoho.books.createRecord("items", orgId, syncMap, "zbooks_conn");
+	if (sync.get("code") == 0) {
+		// If a record is successfully created in ZBooks, we need to populate the foreign ID field in ZCRM for reference and future synchronization
+		recordFID = sync.get("item").get("item_id");
+		populateRecordFID = zoho.crm.updateRecord("Products", recordId, { "ZBooks_ID": recordFID });
+	}
+} else {
+	// If there's an existing record in ZBooks then it will update the existing record
+	// Sync update request from ZCRM to ZBooks
+	sync = zoho.books.updateRecord("items", orgId, recordFID.toLong(), syncMap, "zbooks_conn");
+}
+// Checking request response
+info sync;
