@@ -1,0 +1,65 @@
+//-----------------------------------------------------
+// ZProject Params
+//-----------------------------------------------------
+zProjectPortal = "althondotdevtacgmaildotcom";
+zProjectPortalId = "854193587";
+dealProjectLayoutId = 2316505000000061001;
+//-----------------------------------------------------
+// Fetching layout fields for reference
+//-----------------------------------------------------
+// layoutFields = invokeurl
+// [
+// 	url :"https://projectsapi.zoho.com/restapi/portal/" + zProjectPortalId + "/module/projects/layouts/" + dealProjectLayoutId + "/"
+// 	type :GET
+// 	connection:"zproject_conn"
+// ];
+// customFields = layoutFields.get("custom_fields");
+//-----------------------------------------------------
+// Project creation base on closed won deal data
+//-----------------------------------------------------
+newProject = Map();
+newProject.put("name",dealName);
+newProject.put("layout_id",dealProjectLayoutId);
+newProject.put("start_date",toString(startDate,"MM-dd-yyyy"));
+newProject.put("end_date",toString(endDate,"MM-dd-yyyy"));
+newProject.put("UDF_CHAR1",projectType);
+newProject.put("UDF_DOUBLE1",estimatedHours);
+newProject.put("UDF_CHAR3","https://crm.zoho.com/crm/org858721122/tab/Potentials/" + dealId);
+project = zoho.projects.createProject(zProjectPortal,newProject,"zproject_conn");
+//-----------------------------------------------------
+// Assigning task list template in project
+//-----------------------------------------------------
+if(!project.get("projects").isNull())
+{
+	projectId = project.get("projects").getJSON("id");
+	if(!projectId.isNull())
+	{
+		//-----------------------------------------------------
+		// Fetching task list templates
+		//-----------------------------------------------------
+		taskLists = invokeurl
+		[
+			url :"https://projectsapi.zoho.com/api/v3/portal/" + zProjectPortalId + "/templates/tasklists"
+			type :GET
+			connection:"zproject_conn"
+		];
+		templates = taskLists.get("task_list_templates");
+		if(!templates.isNull())
+		{
+			for each  template in templates
+			{
+				//-----------------------------------------------------
+				// Adding task list template in project based on criteria
+				//-----------------------------------------------------
+				if(template.getJSON("name") == "Solutions &amp; Preparation" || template.getJSON("name") == "Requirement Discussion")
+				{
+					taskListMap = Map();
+					shiftDays = zoho.currenttime.toString("yyyy-MM-dd'T'HH:mm:ss'+08:00'");
+					taskListMap.put("shift_days",shiftDays);
+					taskListMap.put("task_template_id",template.getJSON("id"));
+					zoho.projects.create(zProjectPortal,projectId,"taskLists",taskListMap,"zproject_conn");
+				}
+			}
+		}
+	}
+}
