@@ -25,6 +25,13 @@ newProject.put("end_date",toString(endDate,"MM-dd-yyyy"));
 newProject.put("UDF_CHAR1",projectType);
 newProject.put("UDF_DOUBLE1",estimatedHours);
 newProject.put("UDF_CHAR3","https://crm.zoho.com/crm/org858721122/tab/Potentials/" + dealId);
+if(projectType == "Existing")
+{
+	//-----------------------------------------------------
+	// Utilize project template if type is existing
+	//-----------------------------------------------------
+	newProject.put("template_id",2316505000000090001);
+}
 project = zoho.projects.createProject(zProjectPortal,newProject,"zproject_conn");
 //-----------------------------------------------------
 // Assigning task list template in project
