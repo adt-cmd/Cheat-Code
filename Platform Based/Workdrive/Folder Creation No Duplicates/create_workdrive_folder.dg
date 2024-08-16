@@ -1,0 +1,37 @@
+//===================================================================================================================================================================================
+// API Variables
+//===================================================================================================================================================================================
+workdriveApi = "https://www.zohoapis.com/workdrive/api/v1/";
+workdriveHeaders = {"Accept":"application/vnd.api+json"};
+//===================================================================================================================================================================================
+// Folder Creation
+//===================================================================================================================================================================================
+folderMap = Map();
+folderParamMap = Map();
+folderAttributeParamMap = Map();
+folderAttributeParamMap.put("name",folderName);
+folderAttributeParamMap.put("parent_id",parentId);
+folderParamMap.put("type","files");
+folderParamMap.put("attributes",folderAttributeParamMap);
+folderMap.put("data",folderParamMap);
+folderCreation = invokeurl
+[
+	url :workdriveApi + "files"
+	type :POST
+	parameters:folderMap.toString()
+	headers:workdriveHeaders
+	connection:"zohoapps_conn"
+];
+//===================================================================================================================================================================================
+// Passing the necessary data
+//===================================================================================================================================================================================
+folderData = folderCreation.get("data");
+if(!folderData.isNull())
+{
+	folderAttributes = folderData.get("attributes");
+	folderMap = Map();
+	folderMap.put("id",folderData.get("id"));
+	folderMap.put("link",folderAttributes.get("permalink"));
+	return folderMap;
+}
+return null;

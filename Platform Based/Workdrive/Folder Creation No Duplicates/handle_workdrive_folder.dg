@@ -1,0 +1,66 @@
+//===================================================================================================================================================================================
+// Arguments
+//===================================================================================================================================================================================
+accountId = 6385928000000476974;
+accountName = "ADT Inc.";
+accountType = "Customer";
+//===================================================================================================================================================================================
+// Workdrive app variables
+//===================================================================================================================================================================================
+teamId = "nl3ro88386f496be04c92b83e1d3aa21359d9";
+rootFolderId = "0f11tc6ebbdebf94c430eb0790f3bf2c60302";
+//===================================================================================================================================================================================
+// Verifying account folder existance
+//===================================================================================================================================================================================
+// === fetch_workdrive_folder_by_name.dg ===
+accountFolder = standalone.fetchWorkdriveFolderByName(teamId,rootFolderId,accountName);
+//===================================================================================================================================================================================
+// Creation of folder if not present
+//===================================================================================================================================================================================
+if(accountFolder.isNull())
+{
+    // === create_workdrive_folder.dg ===
+	accountFolder = standalone.createWorkDriveFolder(accountName,rootFolderId);
+}
+//===================================================================================================================================================================================
+// Identifying the subfolders that will be created
+//===================================================================================================================================================================================
+crmUpdateMap = Map();
+crmUpdateMap.put("Account_Folder",accountFolder.get("link"));
+accountFolderId = accountFolder.get("id");
+subFolderParams = List();
+subFolderParams.add({"apiKey":"Attachment_Folder","name":"Attachments"});
+if(accountType == "Customer")
+{
+	subFolderParams.add({"apiKey":"Active_Customer_Folder","name":"Active Customers"});
+	subFolderParams.add({"apiKey":"VIP_Customer_Folder","name":"VIP Customers"});
+}
+else if(accountType == "Partner")
+{
+	subFolderParams.add({"apiKey":"Strategic_Partner_Folder","name":"Strategic Partners"});
+	subFolderParams.add({"apiKey":"Channel_Partner_Folder","name":"Channel Partners"});
+}
+else if(accountType == "Distributor")
+{
+	subFolderParams.add({"apiKey":"Regional_Distributor_Folder","name":"Regional Distributors"});
+	subFolderParams.add({"apiKey":"National_Distributor_Folder","name":"National Distributors"});
+}
+//===================================================================================================================================================================================
+// Processing of subfolders
+//===================================================================================================================================================================================
+for each  subFolderParam in subFolderParams
+{
+	subFolderName = subFolderParam.get("name");
+    // === fetch_workdrive_folder_by_name.dg ===
+	subFolder = standalone.fetchWorkdriveFolderByName(teamId,accountFolderId,subFolderName);
+	if(subFolder.isNull())
+	{
+		// === Creation of subfolder id not present ===
+        // === create_workdrive_folder.dg ===
+		subFolder = standalone.createWorkDriveFolder(subFolderName,accountFolderId);
+	}
+	// === Adding the subfolder link to the mapping to populate the corresponding folder link field in the deal ===
+	crmUpdateMap.put(subFolderParam.get("apiKey"),subFolder.get("link"));
+}
+updateAccountFolderLinks = zoho.crm.updateRecord("Accounts",accountId,crmUpdateMap);
+info updateAccountFolderLinks;

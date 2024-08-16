@@ -1,0 +1,68 @@
+//===================================================================================================================================================================================
+// Arguments
+//===================================================================================================================================================================================
+teamId = "nl3ro88386f496be04c92b83e1d3aa21359d9";
+rootFolderId = "0f11tc6ebbdebf94c430eb0790f3bf2c60302";
+folderName = "Sample Folder";
+//===================================================================================================================================================================================
+// API Variables
+//===================================================================================================================================================================================
+workdriveApi = "https://www.zohoapis.com/workdrive/api/v1/";
+workdriveHeaders = {"Accept":"application/vnd.api+json"};
+//===================================================================================================================================================================================
+// Folder Fetching
+//===================================================================================================================================================================================
+// === Retrieves the root folder information ===
+rootFolder = invokeurl
+[
+	url :workdriveApi + "files/" + rootFolderId
+	type :GET
+	headers:workdriveHeaders
+	connection:"zohoapps_conn"
+];
+// === Retrieves the number of folders in the root directory ===
+folderCount = rootFolder.get("data").get("attributes").get("storage_info").get("folders_count");
+// === This determines the number of fetch cycles needed to check all folders inside, given that only 50 items can be retrieved at a time ===
+counter = folderCount / 50;
+if(counter != counter.toNumber())
+{
+	counter = counter.toNumber() + 1;
+}
+// === Offset list for every process ===
+offsets = {0,50,100,150,200,250,300,350,400};
+folderMap = Map();
+// === Processing every offset included based on folder count ===
+for each  offset in offsets
+{
+	if(counter > 0)
+	{
+		// === Fetching folders based on current offset ===
+		fetchedFolders = invokeurl
+		[
+			url :workdriveApi + "files/" + rootFolderId + "/files?page[limit]=50&page[offset]=" + offset
+			type :GET
+			headers:workdriveHeaders
+			connection:"zohoapps_conn"
+		];
+		// Validating if folder is present in the current processed offset
+		for each  folder in fetchedFolders.get("data")
+		{
+			folderAttributes = folder.get("attributes");
+			folderNameFromSearch = folderAttributes.get("name");
+			if(folderNameFromSearch.equalsIgnoreCase(folderName))
+			{
+				// === If present return the necessary data ===
+				folderMap.put("id",folder.get("id"));
+				folderMap.put("link",folderAttributes.get("permalink"));
+				return folderMap;
+			}
+		}
+	}
+	else
+	{
+		//  === Break if loop count achieved ===
+		break;
+	}
+	counter = counter - 1;
+}
+return null;
