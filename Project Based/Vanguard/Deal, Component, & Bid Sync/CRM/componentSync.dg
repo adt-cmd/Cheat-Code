@@ -1,0 +1,78 @@
+// Standalone { Int crmDealId, String creatorDealId }
+try 
+{
+	ownerName = "vanguarddirect";
+	appLinkName = "vanguard-bidding-app";
+	crmDeal = zoho.crm.getRecordById("Deals",crmDealId);
+	creatorDeal = zoho.creator.getRecordById(ownerName,appLinkName,"All_Deals",creatorDealId,"zcreator_conn");
+	if(crmDeal.getJSON("Stage") != "Closed Won")
+	{
+		noQuote = false;
+	}
+	else
+	{
+		noQuote = true;
+	}
+	crmRelatedComponents = zoho.crm.getRelatedRecords("Component_Lists","Deals",crmDealId,"1","200",Map(),"zcrm_conn");
+	oldComponentNames = List();
+	newComponentNames = List();
+	for each  crmRelatedComponent in crmRelatedComponents
+	{
+		crmComponentId = crmRelatedComponent.get("id");
+		componentData = Map();
+		componentData.put("Zoho_CRM_ID",crmComponentId);
+		componentData.put("Name",crmRelatedComponent.get("Name"));
+		componentData.put("Deal",creatorDealId);
+		componentData.put("Quantity",crmRelatedComponent.get("Quantity"));
+		componentData.put("Status",crmRelatedComponent.get("Status"));
+		componentData.put("Specifications",crmRelatedComponent.get("Specifications"));
+		if(!crmRelatedComponent.get("Proof_of_Delivery_External_Link").isNull())
+		{
+			componentData.put("Proof_of_Delivery_Link",{"url":crmRelatedComponent.get("Proof_of_Delivery_External_Link")});
+		}
+		if(noQuote)
+		{
+			componentData.put("Vendor_Selected",true);
+		}
+		creatorExistingComponent = zoho.creator.getRecords(ownerName,appLinkName,"All_Components","Zoho_CRM_ID == \"" + crmComponentId.toLong() + "\"",1,1,"zcreator_conn");
+		if(!creatorExistingComponent.get("data").isNull())
+		{
+			info "Update Existing Component";
+			componentData.put("User_Email",zoho.loginuserid);
+			creatorComponentUpdate = zoho.creator.updateRecord(ownerName,appLinkName,"All_Components",creatorExistingComponent.get("data").getJSON("ID"),componentData,Map(),"zcreator_conn");
+			if(creatorComponentUpdate.get("code") == "3000")
+			{
+				info "Update Component Bid";
+				zoho.crm.updateRecord("Components",crmComponentId.toLong(),{"Component_Synced":false});
+				updateComponentCreatorSection = zoho.crm.updateRecord("Components",crmComponentId.toLong(),{"Component_Synced":true},{"trigger":{"workflow"}});
+			}
+		}
+		else
+		{
+			info "Create Component through logs";
+			updatedFields = List();
+			for each  fieldInput in componentData.keys()
+			{
+				inputValue = componentData.get(fieldInput);
+				updatedFields.add({"Field_Name":fieldInput.replaceAll("_"," "),"To":inputValue});
+			}
+			rlData = Map();
+			rlData.put("User_Email",zoho.loginuserid);
+			rlData.put("Record_Type","Component");
+			rlData.put("Action_Description","Record Created");
+			rlData.put("Fields_Updated",updatedFields);
+			creatorComponentRecordLogCreation = zoho.creator.createRecord(ownerName,appLinkName,"Record_Log",rlData,Map(),"zcreator_conn");
+		}
+	}
+}
+catch (e)
+{
+	sendmail
+	[
+		from :zoho.adminuserid
+		to :"althontomada.devtac@gmail.com"
+		subject :"Vanguard Sync Error - Component"
+		message :e
+	]
+}
+return "";

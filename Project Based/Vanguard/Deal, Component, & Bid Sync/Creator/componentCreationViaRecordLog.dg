@@ -1,0 +1,108 @@
+void Component_Creation_Via_Record_Log(int rl_id)
+{
+	rl = Record_Log[ID == rl_id];
+	deal_id = "";
+	if(rl.Zoho_Record_ID == null || rl.Zoho_Record_ID == "" && rl.Record_Type == "Component")
+	{
+		component = Deal.Components();
+		for each  field in rl.Fields_Updated
+		{
+			if(field.Field_Name == "Zoho CRM ID")
+			{
+				crmComponentId = field.To;
+				component.Zoho_CRM_ID=field.To;
+			}
+			if(field.Field_Name == "Name")
+			{
+				component.Name=field.To;
+			}
+			if(field.Field_Name == "Deal")
+			{
+				deal_id = field.To;
+				component.Deal=field.To;
+				field.To=Deal[ID == deal_id.tolong()].Name;
+			}
+			if(field.Field_Name == "Quantity")
+			{
+				component.Quantity=field.To;
+			}
+			if(field.Field_Name == "Specifications")
+			{
+				component.Specifications=field.To;
+			}
+			if(field.Field_Name == "Vendor Selected")
+			{
+				component.Vendor_Selected=field.To;
+			}
+			if(field.Field_Name == "Proof of Delivery Link")
+			{
+				component.Proof_of_Delivery_Link=field.To;
+			}
+			if(field.Field_Name == "Vendor Invoice")
+			{
+				component.Vendor_Invoice=field.To;
+			}
+			if(field.Field_Name == "Status")
+			{
+				component.Status=field.To;
+			}
+		}
+		deal = Deal[ID == deal_id.toLong()];
+		old_components = deal.Components;
+		deal.Components.insert(component);
+		if(old_components != null)
+		{
+			for each  component in deal.Components
+			{
+				if(old_components.notContains(component.toString()))
+				{
+					rl.Zoho_Record_ID=component.toString();
+				}
+			}
+		}
+		else
+		{
+			rl.Zoho_Record_ID=deal.Components.get(0).toString();
+		}
+		if(rl.Zoho_Record_ID == null || rl.Zoho_Record_ID == "")
+		{
+			delete from Record_Log[ID == rl_id];
+		}
+		else
+		{
+			current_components_list = List();
+			old_components_list = List();
+			for each  component in deal.Components
+			{
+				comp = Component[ID == component.toLong()];
+				current_components_list.add(comp.Name);
+			}
+			for each  component in old_components
+			{
+				comp = Component[ID == component.toLong()];
+				old_components_list.add(comp.Name);
+			}
+			changes = Collection();
+			updated_field_subform = Record_Log.Fields_Updated();
+			updated_field_subform.Field_Name="Components";
+			updated_field_subform.From=ifnull(old_components_list.toString().remove("[").remove("]").replaceAll(",",", "),"");
+			old_components_list.addAll(current_components_list);
+			updated_field_subform.To=old_components_list.distinct().toString().remove("[").remove("]").replaceAll(",",", ");
+			changes.insert(updated_field_subform);
+			deal_component_update_log = insert into Record_Log
+			[
+				Zoho_Record_ID=deal_id
+				User_Email=rl.User_Email
+				Record_Type="Deal"
+				Action_Description="Component Added"
+				Fields_Updated=changes
+				Added_User=zoho.loginuser
+			];
+		}
+		// Trigger CRM component workflow - Start
+        newlyAddedComponentId = Component[Zoho_CRM_ID == crmComponentId].ID;
+        zoho.crm.updateRecord("Components",crmComponentId.toLong(),{"Component_Synced":false},Map(),"sb_zcrm_conn");
+        updateComponentCreatorSection = zoho.crm.updateRecord("Components",crmComponentId.toLong(),{"Component_Synced":true,"Zoho_Creator_ID":newlyAddedComponentId.toString()},{"trigger":{"workflow"}},"sb_zcrm_conn");
+		// Trigger CRM component workflow - End
+	}
+}

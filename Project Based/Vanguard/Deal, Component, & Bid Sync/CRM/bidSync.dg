@@ -1,0 +1,68 @@
+Automation { Int crmDealId, Int crmComponentId, String creatorComponentId }
+try 
+{
+	ownerName = "vanguarddirect";
+	appLinkName = "vanguard-bidding-app";
+	bidDefaultStatus = "Ready";
+	componentRecordInCRM = zoho.crm.getRecordById("Components",crmComponentId);
+	dealRecordInCreator = zoho.creator.getRecords(ownerName,appLinkName,"All_Deals","Zoho_CRM_ID == \"" + crmDealId + "\"",1,1,"zcreator_conn");
+	dealCreatorId = dealRecordInCreator.get("data").getJSON("ID");
+	crmComponentBidders = zoho.crm.getRelatedRecords("Vendor","Components",crmComponentId,"1","200",Map(),"zcrm_conn");
+	dealRecordInCRM = zoho.crm.getRecordById("Deals",crmDealId);
+	if(dealRecordInCRM.getJSON("Stage") != "Closed Won")
+	{
+		noQuote = false;
+	}
+	else
+	{
+		noQuote = true;
+	}
+	for each  crmComponentBidder in crmComponentBidders
+	{
+		vendorId = crmComponentBidder.get("Bidders").getJson("id").toLong();
+		vendor = zoho.crm.getRecordById("Vendors",vendorId,Map(),"zcrm_conn");
+		vendorCreatorId = vendor.get("Creator_ID");
+		vendorRecordInCreator = zoho.creator.getRecords(ownerName,appLinkName,"All_Vendors","Zoho_CRM_ID == \"" + vendorId + "\"",1,1,"zcreator_conn");
+		dataMap = Map();
+		dataMap.put("User_Email",zoho.loginuserid);
+		dataMap.put("Deal",dealCreatorId);
+		dataMap.put("Component",creatorComponentId);
+		dataMap.put("Vendor",vendorCreatorId);
+		if(!noQuote)
+		{
+			dataMap.put("Status",bidDefaultStatus);
+		}
+		else
+		{
+			dataMap.put("Status","Selected");
+			dataMap.put("Bid_Amount",componentRecordInCRM.get("Cost"));
+		}
+		bidRecordInCreator = zoho.creator.getRecords(ownerName,appLinkName,"All_Biddings","Deal == " + dealCreatorId.toLong() + " && Component == " + creatorComponentId.toLong() + " && Vendor == " + vendorCreatorId.toLong(),1,1,"zcreator_conn");
+		if(!bidRecordInCreator.get("data").isNull())
+		{
+			info "Update Existing Bid for Component: " + componentRecordInCRM.get("Name") + " and Vendor: " + vendor.get("Email");
+			bidRecordInCreator = bidRecordInCreator.get("data").get(0);
+			bidId = bidRecordInCreator.get("ID");
+			creatorBidUpdate = zoho.creator.updateRecord(ownerName,appLinkName,"All_Biddings",bidId.toLong(),dataMap,Map(),"zcreator_conn");
+		}
+		else
+		{
+			info "Create Bid for Component: " + componentRecordInCRM.get("Name") + " and Vendor: " + vendor.get("Email");
+			creatorBidCreation = zoho.creator.createRecord(ownerName,appLinkName,"Bidding",dataMap,Map(),"zcreator_conn");
+		}
+	}
+	dealBidCreatorUrl = "https://creatorapp.zoho.com/vanguarddirect/vanguard-bidding-app/#Report:All_Biddings?Deal.ID=" + dealCreatorId;
+	dealUpdateMap = Map();
+	dealUpdateMap.put("Creator_Bidding_URL",dealBidCreatorUrl);
+	updateCrmDeal = zoho.crm.updateRecord("Deals",crmDealId,dealUpdateMap,Map(),"zcrm_conn");
+}
+catch (e)
+{
+	sendmail
+	[
+		from :zoho.adminuserid
+		to :"althontomada.devtac@gmail.com"
+		subject :"Vanguard Sync Error - Bid"
+		message :e
+	]
+}

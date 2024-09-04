@@ -1,0 +1,68 @@
+// Automation { Int crmDealId }
+try 
+{
+	ownerName = "vanguarddirect";
+	appLinkName = "vanguard-bidding-app";
+	crmDeal = zoho.crm.getRecordById("Deals",crmDealId,"zcrm_conn");
+	dealStage = crmDeal.get("Stage");
+	if(dealStage != "Quote with Sourcing" && dealStage != "Self Quote")
+	{
+		crmDealRelatedComponents = zoho.crm.getRelatedRecords("Component_Lists","Deals",crmDealId,"1","200",Map(),"zcrm_conn");
+		for each  crmDealRelatedComponent in crmDealRelatedComponents
+		{
+			componentId = crmDealRelatedComponent.getJSON("id");
+			componentVendor = zoho.crm.getRelatedRecords("Vendor","Components",componentId,"1","1",Map(),"zcrm_conn").get(0);
+			componentVendorId = componentVendor.getJSON("Bidders").getJSON("id").toLong();
+			setComponentWinningVendor = zoho.crm.updateRecord("Components",componentId,{"Winning_Vendor":componentVendorId});
+		}
+	}
+	dataMap = Map();
+	dataMap.put("User_Email",zoho.loginuserid);
+	dataMap.put("Zoho_CRM_ID",crmDeal.get("id"));
+	dataMap.put("Name",crmDeal.get("Deal_Name"));
+	dataMap.put("Owner_Email",crmDeal.get("Owner").getJSON("email"));s
+	dataMap.put("Stage",crmDeal.get("Stage"));
+	if(dealStage == "Closed Won")
+	{
+		dataMap.put("Note","Pricing pre-established, for Proof of Delivery Upload Only");
+	}
+	else
+	{
+		dataMap.put("Note","");
+	}
+	if(crmDeal.get("Workdrive_Folder_URL") != null)
+	{
+		dataMap.put("Attachment_Link",{"url":crmDeal.get("Workdrive_Folder_URL")});
+	}
+	if(crmDeal.get("Quote_by") != null)
+	{
+		dataMap.put("Quote_By",crmDeal.get("Quote_by").toDate());
+	}
+	creatorDeal = zoho.creator.getRecords(ownerName,appLinkName,"All_Deals","Zoho_CRM_ID == \"" + crmDealId + "\"",1,1,"zcreator_conn");
+	if(!creatorDeal.get("data").isNull())
+	{
+		info "Update Exisring Deal";
+		creatorDealId = creatorDeal.get("data").getJSON("ID");
+		syncDealToCreator = zoho.creator.updateRecord(ownerName,appLinkName,"All_Deals",creatorDealId.toLong(),dataMap,Map(),"zcreator_conn");
+	}
+	else
+	{
+		info "Create Deal";
+		syncDealToCreator = zoho.creator.createRecord(ownerName,appLinkName,"Deal",dataMap,Map(),"zcreator_conn");
+	}
+	if(syncDealToCreator.get("code") == "3000")
+	{
+		info "Syncing Deal Components";
+		standalone.testComponentSync2(crmDealId,syncDealToCreator.get("data").get("ID"));
+	}
+}
+catch (e)
+{
+	sendmail
+	[
+		from :zoho.adminuserid
+		to :"althontomada.devtac@gmail.com"
+		subject :"Vanguard Sync Error - Deal"
+		message :e
+	]
+}
