@@ -9,7 +9,7 @@ zoho.crm.getRecordById("Leads", recordId);
 zoho.crm.getRecords("Leads", 1, 200);
 
 // Search records with criteria
-zoho.crm.searchRecords("Leads", "(Lead_Status:equals:Lost Lead)", 1, 200);
+zoho.crm.searchRecords("Leads", "(Lead_Status:equals:Lost Lead) and (Company:equals:Sample Co) or (Mobile:starts_with:09)", 1, 200);
 
 // Get related records
 zoho.crm.getRelatedRecords("Tasks","Leads", recordId, 1, 200);
