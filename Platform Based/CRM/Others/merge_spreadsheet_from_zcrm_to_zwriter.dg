@@ -1,0 +1,30 @@
+string = "Col1,Col2,Col3,Col1 Value,Col2 Value,Col3 Value,Col1_2 Value,Col2_2 Value,Col3_2 Value";
+stringList = string.toList(",");
+dataCollection = Collection();
+dataList = Map();
+col = 1;
+for each  s in stringList
+{
+	dataList.put("col" + col,s);
+	col = col + 1;
+	if(col > 3) // Number of columns in a table
+	{
+		dataCollection.add(dataList);
+		col = 1;
+		dataList = Map();
+	}
+}
+info dataCollection;
+mapCollection = Collection();
+for each  data in dataCollection
+{
+	mapList = Map();
+	info data.getJSON("col2");
+	mapList.put("Sample.col1",data.getJSON("col1"));
+	mapList.put("Sample.col2",data.getJSON("col2"));
+	mapList.put("Sample.col3",data.getJSON("col3"));
+	mapCollection.add(mapList);
+}
+mapDta = Map();
+mapDta.put("Sample",mapCollection);
+helloa = zoho.writer.mergeAndStore("s8od24cd319c3192943e4b1f090e52de75508",mapDta,Map(),"zapps_conn");
