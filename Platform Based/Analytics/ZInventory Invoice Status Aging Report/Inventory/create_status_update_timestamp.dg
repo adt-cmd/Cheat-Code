@@ -1,0 +1,25 @@
+orgId = "856166201";
+workspaceId = "2919630000000152002";
+// Invoice Status Timestamp Table View ID
+viewId = "2919630000000161456";
+columnsMap = Map();
+columnsMap.put("Invoice Id",invoice.get("invoice_id"));
+columnsMap.put("Invoice Number",invoice.get("invoice_number"));
+columnsMap.put("Status",invoice.get("status_formatted"));
+columnsMap.put("Timestamp",zoho.currenttime.toString("MMM dd, yyyy HH:mm:ss"));
+columnsMap.put("Actor",zoho.loginuserid);
+columns = Map();
+columns.put("columns",columnsMap);
+paramsMap = Map();
+paramsMap.put("CONFIG",columns.toString());
+headersMap = Map();
+headersMap.put("ZANALYTICS-ORGID",orgId);
+createTimestamp = invokeurl
+[
+	url :"https://analyticsapi.zoho.com/restapi/v2/workspaces/" + workspaceId + "/views/" + viewId + "/rows"
+	type :POST
+	parameters:paramsMap
+	headers:headersMap
+	connection:"zapp_conn"
+];
+info createTimestamp;
