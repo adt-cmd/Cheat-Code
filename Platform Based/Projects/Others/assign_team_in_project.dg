@@ -1,0 +1,13 @@
+projectTeamId = 2371400000000103060;
+param = Map();
+param.put("groupid",projectTeamId);
+param.put("groupprojid",projectId);
+info param;
+assignTeam = invokeurl
+[
+	url :"https://projectsapi.zoho.com/restapi/portal/" + portalId + "/usergroups/addproject/"
+	type :POST
+	parameters:param
+	connection:"zapp_conn"
+];
+return assignTeam;
