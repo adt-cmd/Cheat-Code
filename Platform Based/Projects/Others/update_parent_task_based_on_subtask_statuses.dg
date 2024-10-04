@@ -1,0 +1,36 @@
+
+portalId = 865261206;
+projectId = 2371400000000055342;
+taskId = 2371400000000078367;
+task = zoho.projects.getRecordById(portalId, projectId, "Tasks",taskId, "zapp_conn").get("tasks").get(0);
+taskParentId = task.get("parent_task_id");
+if (!taskParentId.isNull())
+{
+	parentTask = zoho.projects.getRecordById(portalId, projectId, "Tasks",taskParentId, "zapp_conn").get("tasks").get(0);
+	subtaskUrl = parentTask.get("link").get("subtask").get("url");
+	subtasks = invokeurl
+	[
+		url: subtaskUrl
+		type: GET
+		connection: "zapp_conn"
+	];
+	taskStatusList = List();
+	for each subtask in subtasks.get("tasks")
+	{
+		taskStatusList.add(subtask.getJson("status").getJson("id"));
+	}
+	taskStatuses = taskStatusList.distinct();
+	if (taskStatuses.size() == 1)
+	{
+        // Update to according to subtask distinct status
+		taskStatusId = taskStatuses.get(0);
+		updateParentTask = zoho.projects.update(portalId, projectId, "Tasks",taskParentId, { "custom_status": taskStatusId }, "zapp_conn");
+	}
+	else 
+    {
+        // Update to In Progress
+		updateParentTask = zoho.projects.update(portalId, projectId, "Tasks",taskParentId, { "custom_status": 2371400000000031001 }, "zapp_conn");
+    }
+	info updateParentTask.get("tasks").getJSON("status");
+}
+return "";
