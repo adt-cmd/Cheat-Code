@@ -1,0 +1,68 @@
+orgId = organization.get("organization_id");
+recordId = salesorder.get("salesorder_id");
+salesorder = invokeurl
+[
+	url :"https://www.zohoapis.com/inventory/v1/salesorders/" + recordId + "?organization_id=" + orgId
+	type :GET
+	connection:"zapp_conn"
+];
+// info salesorder;
+salesorder = salesorder.get("salesorder");
+if(!salesorder.isNull())
+{
+	currentSubStatusId = salesorder.get("current_sub_status_id");
+	if(currentSubStatusId.isNull())
+	{
+		updatedStatus = salesorder.get("status").toLowerCase();
+	}
+	else
+	{
+		for each  subStatus in salesorder.get("sub_statuses")
+		{
+			if(subStatus.get("status_id") == currentSubStatusId)
+			{
+				updatedStatus = subStatus.get("display_name").toLowerCase();
+				break;
+			}
+		}
+	}
+	for each  customField in salesorder.get("custom_fields")
+	{
+		if(customField.get("label") == "Current Status")
+		{
+			currentStatus = customField.get("value").toLowerCase();
+			break;
+		}
+	}
+	info updatedStatus;
+	if(currentStatus != updatedStatus)
+	{
+		currentTime = zoho.currenttime.toString("YYYY-MM-dd hh:mm:ss");
+		updateMap = Map();
+		customFields = List();
+		if(updatedStatus == "confirmed")
+		{
+			// Update Eligibility Confirmation Date
+			customFields.add({"label":"Eligibility Confirmation Date","value":currentTime});
+		}
+		else if(updatedStatus == "application approved")
+		{
+			// Update Approval Confirmation Date
+			customFields.add({"label":"Approval Confirmation Date","value":currentTime});
+		}
+		else if(updatedStatus == "confirmation email sent")
+		{
+			// Update Confirmation Email Sent Date
+			customFields.add({"label":"Confirmation Email Sent Date","value":currentTime});
+		}
+		else if(updatedStatus == "fulfilled")
+		{
+			// Update Reward Fulfillment Date
+			customFields.add({"label":"Fulfillment Date","value":currentTime});
+		}
+		customFields.add({"label":"Current Status","value":updatedStatus.toUpperCase()});
+		updateMap.put("custom_fields",customFields);
+		updateDateField = zoho.inventory.updateRecord("salesorders",orgId,recordId,updateMap,"zapp_conn");
+		info updateDateField;
+	}
+}
