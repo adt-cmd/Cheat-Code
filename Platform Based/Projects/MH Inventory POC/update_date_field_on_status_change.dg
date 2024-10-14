@@ -6,7 +6,6 @@ salesorder = invokeurl
 	type :GET
 	connection:"zapp_conn"
 ];
-// info salesorder;
 salesorder = salesorder.get("salesorder");
 if(!salesorder.isNull())
 {
