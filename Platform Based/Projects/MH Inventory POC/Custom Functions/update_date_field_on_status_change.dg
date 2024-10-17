@@ -1,3 +1,4 @@
+// SO Module
 orgId = organization.get("organization_id");
 recordId = salesorder.get("salesorder_id");
 salesorder = invokeurl

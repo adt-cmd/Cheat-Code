@@ -1,0 +1,35 @@
+
+orgId = organization.get("organization_id");
+updateMap = Map();
+customFields = List();
+customFields.add({"label":"Paid Date","value":zoho.currenttime.toString("YYYY-MM-dd hh:mm:ss")});
+updateMap.put("custom_fields",customFields);
+for each  purchaseorderId in bill.get("purchaseorder_ids")
+{
+	purchaseorder = invokeurl
+	[
+		url :"https://www.zohoapis.com/inventory/v1/purchaseorders/" + purchaseorderId + "?organization_id=" + orgId
+		type :GET
+		connection:"zapp_conn"
+	];
+	purchaseorder = purchaseorder.get("purchaseorder");
+	if(purchaseorder.get("billed_status") == "billed")
+	{
+		info "=====PO is fully Billed=====";
+		allBillIsPaid = true;
+		for each  bill in purchaseorder.get("bills")
+		{
+			if(bill.get("status") != "paid")
+			{
+				info "=====Not fully Paid Bill Found=====";
+				allBillIsPaid = false;
+				break;
+			}
+		}
+		if(allBillIsPaid)
+		{
+			info "=====Paid Date Updated=====";
+			updateDateField = zoho.inventory.updateRecord("purchaseorders",orgId,purchaseorderId,updateMap,"zapp_conn");
+		}
+	}
+}

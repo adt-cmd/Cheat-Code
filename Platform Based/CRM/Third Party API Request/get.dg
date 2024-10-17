@@ -1,0 +1,10 @@
+accessToken = "Bearer " + token;
+requestHeaders = Map();
+requestHeaders.put("Authorization",accessToken);
+bitwarden = invokeurl
+[
+	url :"https://api.bitwarden.com/public/collections"
+	type :GET
+	headers:requestHeaders
+	detailed:true
+];

@@ -1,0 +1,18 @@
+// Calling a variable
+token = zoho.crm.getOrgVariable("Variable_API_Key");
+
+// Updating a variable
+variableMap = Map();
+variableMap.put("id",variableId);
+variableMap.put("value",variableValue);
+variableList = List();
+variableList.add(variableMap);
+param = Map();
+param.put("variables",variableList);
+updateVariable = invokeurl
+[
+    url : "https://www.zohoapis.com/crm/v2/settings/variables"
+    type :PUT
+    parameters:param.toString()
+    connection: "YOUR_CONNECTION_NAME"
+];

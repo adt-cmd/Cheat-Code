@@ -1,0 +1,14 @@
+requestHeaders = Map();
+requestHeaders.put("Content-Type","application/x-www-form-urlencoded");
+requestParams = Map();
+requestParams.put("grant_type","client_credentials");
+requestParams.put("scope","apiScope");
+requestParams.put("client_id","clientId");
+requestParams.put("client_secret","clientSecret");
+token = invokeurl
+[
+	url :"https://identity.bitwarden.com/connect/token"
+	type :POST
+	parameters:requestParams
+	headers:requestHeaders
+];

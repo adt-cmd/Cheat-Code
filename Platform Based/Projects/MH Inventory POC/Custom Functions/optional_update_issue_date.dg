@@ -1,0 +1,24 @@
+
+orgId = organization.get("organization_id");
+recordId = purchaseorder.get("purchaseorder_id");
+purchaseorder = invokeurl
+[
+	url :"https://www.zohoapis.com/inventory/v1/purchaseorders/" + recordId + "?organization_id=" + orgId
+	type :GET
+	connection:"zapp_conn"
+];
+purchaseorder = purchaseorder.get("purchaseorder");
+for each  customField in purchaseorder.get("custom_fields")
+{
+	if(customField.get("label") == "Issue Date" && customField.get("value") != null)
+	{
+		info "Issue Date already populated";
+		return;
+	}
+}
+info "Issue Date is not yet populated";
+updateMap = Map();
+customFields = List();
+customFields.add({"label":"Issue Date","value":zoho.currenttime.toString("YYYY-MM-dd hh:mm:ss")});
+updateMap.put("custom_fields",customFields);
+updateDateField = zoho.inventory.updateRecord("purchaseorders",orgId,recordId,updateMap,"zapp_conn");
