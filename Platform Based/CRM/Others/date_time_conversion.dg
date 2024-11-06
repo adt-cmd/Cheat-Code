@@ -1,0 +1,13 @@
+string standalone.hlvSmTest()
+{
+    contactId = 6215327000001706178;
+    contactRecord = zoho.crm.getRecordById("Contacts",contactId);
+    transportationDateTime = contactRecord.get("Transportation_Date_Time");
+    contactTimezone = "Asia/Manila";
+    equivalentLocalTime = transportationDateTime.toTime("yyyy-MM-dd'T'HH:mm:ss",contactTimezone).toString("yyyy-MM-dd'T'HH:mm:ss");
+    info equivalentLocalTime;
+    updatePayload = {"Trigger_Date_Time":equivalentLocalTime};
+    updateResp = zoho.crm.updateRecord("Contacts",contactId,updatePayload);
+    info updateResp;
+    return zoho.currenttime;
+}
