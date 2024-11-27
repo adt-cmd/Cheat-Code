@@ -1,0 +1,42 @@
+string standalone.xeroRefreshBearerToken()
+{
+tokenUrl = zoho.crm.getOrgVariable("XERO_Token_URL");
+clientId = zoho.crm.getOrgVariable("XERO_Client_ID");
+clientSecret = zoho.crm.getOrgVariable("XERO_Client_Secret");
+redirectUri = zoho.crm.getOrgVariable("XERO_Redirect_URI");
+refreshToken = zoho.crm.getOrgVariable("XERO_Refresh_Token");
+// 
+authString = clientId + ":" + clientSecret;
+encodedAuth = zoho.encryption.base64Encode(authString);
+// 
+parameters = Map();
+parameters.put("grant_type","refresh_token");
+parameters.put("refresh_token",refreshToken);
+// 
+headers = Map();
+headers.put("Authorization","Basic " + encodedAuth);
+headers.put("Content-Type","application/x-www-form-urlencoded");
+//
+accessToken = invokeurl
+[
+	url :tokenUrl
+	type :POST
+	parameters:parameters
+	headers:headers
+];
+//
+refreshToken = accessToken.get("refresh_token");
+if(!refreshToken.isNull())
+{
+	variableMap = Map();
+	variableMap.put("apiname","XERO_Refresh_Token");
+	variableMap.put("value",refreshToken);
+	updateRefreshToken = zoho.crm.invokeConnector("crm.set",variableMap);
+}
+bearerToken = accessToken.get("access_token");
+if(!bearerToken.isNull())
+{
+	return bearerToken;
+}
+return "There's a problem requesting bearer token!";
+}

@@ -1,0 +1,14 @@
+string standalone.DevtacTest()
+{
+srId = 3272574000090726029;
+hotelTimezone = "Asia/Manila";
+specialRequest = zoho.crm.getRecordById("Special_Requests",srId);
+transportationDateTime = specialRequest.get("Transportation_Date_Time");
+equivalentLocalTime = transportationDateTime.toTime("yyyy-MM-dd'T'HH:mm:ss",hotelTimezone).toString("yyyy-MM-dd'T'HH:mm:ss");
+updatePayload = {"EQ_DT":equivalentLocalTime};
+info "Hotel's Timezone: " + hotelTimezone;
+info "Transportation Date Time: " + transportationDateTime;
+info "Converted Date Time: " + equivalentLocalTime;
+updateResp = zoho.crm.updateRecord("Special_Requests",srId,updatePayload);
+return zoho.currenttime;
+}

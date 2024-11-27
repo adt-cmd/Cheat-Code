@@ -1,0 +1,6 @@
+response = invokeurl
+[
+    url :"https://www.zohoapis.com/inventory/v1/salesorders/" + recordId + "/substatus/cs_tobeshi?organization_id=" + orgId
+    type :POST
+    connection:"zapp_conn"
+];

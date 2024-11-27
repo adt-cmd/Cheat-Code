@@ -1,0 +1,20 @@
+item = invokeurl
+[
+	url :"https://www.zohoapis.com/inventory/v1/items/5715558000000101028?organization_id=871678785"
+	type :GET
+	connection:"zapp_conn"
+];
+// info item;
+info salesorder.get("line_items");
+parameters = Map();
+lineItems = List();
+lineItems.add({"item_id":5715558000000101028,"salesorder_item_id": 5715558000000101105, "batches":{{"batch_in_id":"5715558000000101054","out_quantity":1}}});
+parameters.put("customer_id",5715558000000089301);
+parameters.put("line_items",lineItems);
+response = invokeurl
+[
+	url :"https://www.zohoapis.com/inventory/v1/invoices?organization_id=871678785"
+	type :POST
+	parameters:parameters.toString()
+	connection:"zapp_conn"
+];

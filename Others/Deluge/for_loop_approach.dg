@@ -1,0 +1,9 @@
+a = 10;
+b = leftpad(" ", a - 1).replaceAll(" ", ",");
+b = b.toList();
+for each a in b
+{
+	info "Hello World";
+}
+// Hello World will be display 10 times
+// Reference: https://www.joellipman.com/articles/crm/zoho/zoho-deluge-generate-a-list-of-any-size.html

@@ -1,0 +1,21 @@
+
+    v_Output = "";
+    l_Output = List:String();
+    l_Alphabet = {"A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z", "1", "2", "3", "4", "5", "6", "7", "8", "9", "0"};
+    v_StrLength = 8;
+
+    // everyday I'm shufflin
+    l_OutputShuffled = List();
+    v_OutputListSize = l_Alphabet.size();
+    for each v_Element in l_Alphabet
+    {
+        v_Random = (zoho.currenttime.toLong()  %  v_OutputListSize);
+        l_OutputShuffled.add(l_Alphabet.get(v_Random));
+        l_Alphabet.removeElement(v_Random);
+        v_OutputListSize = v_OutputListSize - 1;
+    }
+    l_Output = l_OutputShuffled.subList(0,v_StrLength);
+    v_Output= l_Output.toString("");
+   info v_Output;
+
+   // Reference: https://www.joellipman.com/articles/crm/zoho/zoho-deluge-generate-5-letter-booking-retrieval-code.html

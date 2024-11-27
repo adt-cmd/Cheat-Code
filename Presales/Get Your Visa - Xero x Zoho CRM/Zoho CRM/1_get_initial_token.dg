@@ -1,0 +1,42 @@
+string standalone.xeroGetInitialToken()
+{
+// 1. Request User Access by visting below link
+// 2. https://login.xero.com/identity/connect/authorize?response_type=code&client_id=9EE4B9801AA84041BFF3F3E87730984F&redirect_uri=https://crm.zoho.com/crm/org847820991/tab/Home/begin&scope=openid profile email offline_access accounting.settings payroll.payruns&state=123	
+// 	3. Store the code from response in XERO Authorization Request Key	zoho crm variabl
+// 	4. Once stored, you can now then run this script
+tokenUrl = zoho.crm.getOrgVariable("XERO_Token_URL");
+clientId = zoho.crm.getOrgVariable("XERO_Client_ID");
+clientSecret = zoho.crm.getOrgVariable("XERO_Client_Secret");
+authorizationKey = zoho.crm.getOrgVariable("XERO_Authorization_Request_Key");
+redirectUri = zoho.crm.getOrgVariable("XERO_Redirect_URI");
+// 
+authString = clientId + ":" + clientSecret;
+encodedAuth = zoho.encryption.base64Encode(authString);
+// 
+parameters = Map();
+parameters.put("grant_type","authorization_code");
+parameters.put("code",authorizationKey);
+parameters.put("redirect_uri",redirectUri);
+// 
+headers = Map();
+headers.put("Authorization","Basic " + encodedAuth);
+headers.put("Content-Type","application/x-www-form-urlencoded");
+// 
+accessToken = invokeurl
+[
+	url :tokenUrl
+	type :POST
+	parameters:parameters
+	headers:headers
+];
+refreshToken = accessToken.get("refresh_token");
+if(!refreshToken.isNull())
+{
+	variableMap = Map();
+	variableMap.put("apiname","XERO_Refresh_Token");
+	variableMap.put("value",refreshToken);
+	updateRefreshToken = zoho.crm.invokeConnector("crm.set",variableMap);
+	return refreshToken;
+}
+return "There's a problem requesting authorization!";
+}

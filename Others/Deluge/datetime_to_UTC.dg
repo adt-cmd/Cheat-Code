@@ -1,0 +1,22 @@
+resp = zoho.crm.getRecordById("Leads", id);
+dt = resp.get("Date_Time_1");
+if(dt.toString().contains("+"))
+{
+	tz = dt.getSuffix("+");
+	hr = tz.toList(":").get(0);
+	min = tz.toList(":").get(1);
+	dt = dt.toTime("yyyy-MM-dd'T'HH:mm:ss").subHour(hr).subMinutes(min).toString("yyyy-MM-dd'T'HH:mm:ss+"+tz);
+	info dt;
+	//update UTC to same DateTime field
+	up = zoho.crm.updateRecord("Leads", id, {"Date_Time_1":dt});
+}
+else if(dt.toString().contains("-"))
+{
+	tz = dt.getSuffix("-");
+	hr = tz.toList(":").get(0);
+	min = tz.toList(":").get(1);
+	dt = dt.toTime("yyyy-MM-dd'T'HH:mm:ss").addHour(hr).addMinutes(min).toString("yyyy-MM-dd'T'HH:mm:ss-"+tz);
+	info dt;
+	//update UTC to same DateTime field
+	up = zoho.crm.updateRecord("Leads", id, {"Date_Time_1":dt});
+}
