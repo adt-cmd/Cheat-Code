@@ -1,16 +1,118 @@
-item = invokeurl
-[
-	url :"https://www.zohoapis.com/inventory/v1/items/5715558000000101028?organization_id=871678785"
-	type :GET
-	connection:"zapp_conn"
-];
-// info item;
-info salesorder.get("line_items");
+// item = invokeurl
+// [
+// 	url :"https://www.zohoapis.com/inventory/v1/items/5715558000000101028?organization_id=871678785"
+// 	type :GET
+// 	connection:"zapp_conn"
+// ];
+// // info item;
+// info salesorder.get("line_items");
+// parameters = Map();
+// lineItems = List();
+// lineItems.add({"item_id":5715558000000101028,"salesorder_item_id": 5715558000000101105, "batches":{{"batch_in_id":"5715558000000101054","out_quantity":1}}});
+// parameters.put("customer_id",5715558000000089301);
+// parameters.put("line_items",lineItems);
+// response = invokeurl
+// [
+// 	url :"https://www.zohoapis.com/inventory/v1/invoices?organization_id=871678785"
+// 	type :POST
+// 	parameters:parameters.toString()
+// 	connection:"zapp_conn"
+// ];
+
+orgId = organization.get("organization_id");
+invoiceLineItems = List();
+salesOrderLineItems = salesorder.get("line_items");
+for each  salesOrderLineItem in salesOrderLineItems
+{
+	lineItem = Map();
+	lineItemId = salesOrderLineItem.get("line_item_id");
+	lineItemProductId = salesOrderLineItem.get("item_id");
+	lineItemQuantity = salesOrderLineItem.get("quantity");
+	batches = List();
+	if(salesOrderLineItem.get("track_batch_number"))
+	{
+		item = invokeurl
+		[
+			url :"https://www.zohoapis.com/inventory/v1/items/" + lineItemProductId + "?organization_id=" + orgId
+			type :GET
+			connection:"zapp_conn"
+		];
+		lineItemBatches = item.get("item").get("batches");
+		lineItemStockBatches = List();
+		stockList = leftpad(" ",lineItemQuantity - 1).replaceAll(" ",",");
+		stockList = stockList.toList();
+		selectedBatches = List();
+		for each  stock in stockList
+		{
+			// [{id: 123, committed: 2}, {id: 456, committed: 3}]
+			// -------------------Sortation Start-------------------
+			unsortedKeys = List();
+			unsortedKeyValueData = Map();
+			sortedList = List();
+			for each  lineItemBatch in lineItemBatches
+			{
+				if(lineItemBatch.get("expiry_date").toDate() >= zoho.currentdate && lineItemBatch.get("status") == "active" && lineItemBatch.get("balance_quantity") > 0)
+				{
+					sortingValue = lineItemBatch.get("expiry_date") + "-" + lineItemBatch.get("batch_in_id");
+					unsortedKeys.add(sortingValue);
+					unsortedKeyValueData.put(sortingValue,lineItemBatch);
+				}
+			}
+			sortedKeys = unsortedKeys.sort(true);
+			for each  key in sortedKeys
+			{
+				sortedList.add(unsortedKeyValueData.get(key));
+			}
+			// -------------------Sortation End-------------------
+			for each  lineItemBatch in sortedList
+			{
+				lineItemBatchId = lineItemBatch.get("batch_in_id");
+				qtySuffecient = true;
+				for each  selectedBatch in selectedBatches
+				{
+					if(lineItemBatchId == selectedBatch.get("id"))
+					{
+						if(lineItemBatch.get("balance_quantity") <= selectedBatch.get("committed"))
+						{
+							qtySuffecient = false;
+							break;
+						}
+					}
+				}
+				if(qtySuffecient)
+				{
+					existingRowUpdated = false;
+					for each  selectedBatch in selectedBatches
+					{
+						if(selectedBatch.get("id") == lineItemBatchId)
+						{
+							currentCommitment = selectedBatch.get("committed");
+							selectedBatch.put("committed",currentCommitment + 1);
+							existingRowUpdated = true;
+							break;
+						}
+					}
+					if(!existingRowUpdated)
+					{
+						selectedBatches.add({"id":lineItemBatchId,"committed":1});
+					}
+					batches.add({"batch_in_id":lineItemBatchId,"out_quantity":1});
+					break;
+				}
+			}
+		}
+		
+	}
+	itemMap = Map();
+	itemMap.put("item_id", lineItemProductId);		
+	itemMap.put("salesorder_item_id", lineItemId);
+	itemMap.put("quantity", lineItemQuantity);
+	itemMap.put("batches", batches);
+	invoiceLineItems.add(itemMap);
+}
 parameters = Map();
-lineItems = List();
-lineItems.add({"item_id":5715558000000101028,"salesorder_item_id": 5715558000000101105, "batches":{{"batch_in_id":"5715558000000101054","out_quantity":1}}});
 parameters.put("customer_id",5715558000000089301);
-parameters.put("line_items",lineItems);
+parameters.put("line_items",invoiceLineItems);
 response = invokeurl
 [
 	url :"https://www.zohoapis.com/inventory/v1/invoices?organization_id=871678785"
@@ -18,3 +120,4 @@ response = invokeurl
 	parameters:parameters.toString()
 	connection:"zapp_conn"
 ];
+info response;
