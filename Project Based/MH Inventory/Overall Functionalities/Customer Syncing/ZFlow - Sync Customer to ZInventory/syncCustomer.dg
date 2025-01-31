@@ -1,0 +1,111 @@
+payload = {
+  "Email": "gabbyfajutag@gmail.com",
+  "First_Name": "Jhon",
+  "Last_Name": "Doe",
+  "Phone_Number": "8929312213",
+  "Mobile_Number": "4156789023",
+  "Address_Line_1": "Market Street",
+  "Address_Line_2": "Suite 800",
+  "City": "New York",
+  "State": "NY",
+  "ZIP_Code": "10001",
+  "Country":"United States"
+};
+
+void syncCustomer(Map payload)
+{
+    customerEmail = payload.get("Email");
+    customerFirstName = payload.get("First_Name");
+    customerLastName = payload.get("Last_Name");
+    customerPhoneNumber = payload.get("Phone_Number");
+    customerMobileNumber = payload.get("Mobile_Number");
+    customerAddressLine1 = payload.get("Address_Line_1");
+    customerAddressLine2 = payload.get("Address_Line_2");
+    customerCity = payload.get("City");
+    customerState = payload.get("State");
+    customerZIPCode = payload.get("ZIP_Code");
+    customerCountry = payload.get("Country");
+    customerMap = Map();
+    contactMap = Map();
+    customerMap.put("first_name",customerFirstName);
+    customerMap.put("last_name",customerLastName);
+    customerMap.put("phone",customerPhoneNumber);
+    customerMap.put("mobile",customerMobileNumber);
+    contactMap.put("contact_name",customerFirstName + " " + customerLastName);
+    contactMap.put("contact_type","customer");
+    customer = invokeurl
+    [
+        url :"https://www.zohoapis.com/inventory/v1/contacts?organization_id=814949755&email_startswith=" + customerEmail
+        type :GET
+        connection:"zinv"
+    ];
+    for each  contact in customer.get("contacts")
+    {
+        if(contact.get("email").equalsIgnoreCase(customerEmail))
+        {
+            contactId = contact.get("contact_id");
+            contactPersons = invokeurl
+            [
+                url :"https://www.zohoapis.com/inventory/v1/contacts/" + contact.get("contact_id") + "/contactpersons?organization_id=814949755"
+                type :GET
+                connection:"zinv"
+            ];
+        }
+    }
+    if(contactId.isNull())
+    {
+        // Create new customer/contact
+        customerMap.put("email",customerEmail);
+        createContact = invokeurl
+        [
+            url :"https://www.zohoapis.com/inventory/v1/contacts?organization_id=814949755"
+            type :POST
+            parameters:contactMap.toString()
+            connection:"zinv"
+        ];
+        info "Contact Created";
+        info createContact;
+        if(createContact.get("code") == 0)
+        {
+            contactId = createContact.get("contact").get("contact_id");
+            customerMap.put("contact_id",contactId);
+            createContactPerson = invokeurl
+            [
+                url :"https://www.zohoapis.com/inventory/v1/contacts/contactpersons?organization_id=814949755"
+                type :POST
+                parameters:customerMap.toString()
+                connection:"zinv"
+            ];
+            info createContactPerson;
+        }
+    }
+    else
+    {
+        for each  contactPerson in contactPersons.get("contact_persons")
+        {
+            if(contactPerson.get("email").equalsIgnoreCase(customerEmail))
+            {
+                contactPersonId = contactPerson.get("contact_person_id");
+                break;
+            }
+        }
+        // Update existing customer/contact
+        updateContactPerson = invokeurl
+        [
+            url :"https://www.zohoapis.com/inventory/v1/contacts/contactpersons/" + contactPersonId + "?organization_id=814949755"
+            type :PUT
+            parameters:customerMap.toString()
+            connection:"zinv"
+        ];
+        updateContact = invokeurl
+        [
+            url :"https://www.zohoapis.com/inventory/v1/contacts/" + contactId + "?organization_id=814949755"
+            type :PUT
+            parameters:contactMap.toString()
+            connection:"zinv"
+        ];
+        info "Contact and Customer Updated";
+        info updateContactPerson;
+        info updateContact;
+    }
+}

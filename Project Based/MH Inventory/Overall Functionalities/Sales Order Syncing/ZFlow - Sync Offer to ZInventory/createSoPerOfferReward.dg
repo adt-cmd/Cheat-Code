@@ -1,0 +1,73 @@
+// Demo98
+
+payload = {
+  "ARN": "ZINV-FLOW-12345",
+  "Reward_Customer_Email": "gabbyfajutag@gmail.com",
+  "Redemption_Center": "ShortQ",
+  "Product_Name": "Sample Product Vertical",
+  "Rewards": [
+    {
+      "Reward_ID": 123,
+      "Reward_Type": "Physical",
+      "Reward_Item_ZInv_ID": 4227625000008410049,
+      "Quantity": 1,
+      "Redemption_Code": "R101",
+      "End_Date": "30-Jan-2025"
+    },
+    {
+      "Reward_ID": 456,
+      "Reward_Type": "Digital",
+      "Reward_Item_ZInv_ID": 4227625000008410005,
+      "Quantity": 1,
+      "Redemption_Code": "R101",
+      "End_Date": "30-Jan-2025"
+    }
+  ]
+}
+
+void createSoPerOfferReward(Map payload)
+{
+	offerARN = payload.get("ARN");
+	customerEmail = payload.get("Reward_Customer_Email");
+	redemptionCenter = payload.get("Redemption_Center");
+	customerEmail = payload.get("Reward_Customer_Email");
+	if(redemptionCenter == "ShortQ")
+	{
+		warehouseId = 4227625000008707032;
+	}
+	else if(redemptionCenter == "Switch+")
+	{
+		warehouseId = 4227625000008707066;
+	}
+	productName = payload.get("Product_Name");
+	offerRewards = payload.get("Rewards");
+	customer = invokeurl
+	[
+		url :"https://www.zohoapis.com/inventory/v1/contacts?organization_id=814949755&email_startswith=" + customerEmail
+		type :GET
+		connection:"zinv"
+	];
+	if(customer.get("contacts").size() > 0)
+	{
+		customerId = customer.get("contacts").get(0).get("contact_id");
+		for each  offerReward in offerRewards
+		{
+			soMap = Map();
+			soCfList = List();
+			soMap.put("customer_id",customerId);
+			soMap.put("warehouse_id",warehouseId);
+			soMap.put("reference_number",offerReward.get("Reward_ID"));
+			lineItems = {{"item_id":offerReward.get("Reward_Item_ZInv_ID").toLong(),"quantity":offerReward.get("Quantity")}};
+			soCfList.add({"label":"ARN","value":offerARN});
+			soCfList.add({"label":"Redemption Center","value":redemptionCenter});
+			soCfList.add({"label":"Product Name","value":productName});
+			soCfList.add({"label":"Reward Type","value":offerReward.get("Reward_Type")});
+			soCfList.add({"label":"Redemption Code","value":offerReward.get("Redemption_Code")});
+			soCfList.add({"label":"End Date","value":offerReward.get("End_Date").toString("YYYY-MM-DD")});
+			soMap.put("line_items",lineItems);
+			soMap.put("custom_fields",soCfList);
+			soCreation = zoho.inventory.createRecord("salesorders",814949755,soMap,"zinv");
+			info soCreation;
+		}
+	}
+}
