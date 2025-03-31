@@ -1,0 +1,59 @@
+void syncSalesOrderEligibilityStatus(map offerElibilitySyncPayload)
+{
+try 
+{
+	orgId = 858967474;
+	apiBaseUrl = "https://www.zohoapis.com/inventory/v1/";
+	offerArn = offerElibilitySyncPayload.get("ARN");
+	offerEligibilityStatus = offerElibilitySyncPayload.get("Eligibility_Status");
+	offerRelatedSalesOrders = invokeurl
+	[
+		url :apiBaseUrl + "salesorders?reference_number=" + offerArn + "&organization_id=" + orgId
+		type :GET
+		connection:"zinventory_conn"
+	];
+	for each  offerRelatedSalesOrder in offerRelatedSalesOrders.get("salesorders")
+	{
+		soId = offerRelatedSalesOrder.get("salesorder_id");
+		if(offerEligibilityStatus.equalsIgnoreCase("Approved"))
+		{
+			soConfirmationPayload = Map();
+			soConfirmationPayload.put("SO_ID",soId);
+			markSoAsConfirmed = invokeurl
+			[
+				url :"https://flow.zoho.com/879251603/flow/webhook/incoming?zapikey=1001.7f398341bf804bca524ae92389e9a360.566613aa3a74d7e9a4422115035152d9&isdebug=false"
+				type :GET
+				parameters:soConfirmationPayload
+			];
+		}
+		else
+		{
+			if(offerEligibilityStatus.equalsIgnoreCase("Disputed"))
+			{
+				customDraftStatus = "cs_dispute";
+			}
+			else if(offerEligibilityStatus.equalsIgnoreCase("Declined"))
+			{
+				customDraftStatus = "cs_cancell";
+			}
+			markSoAsDisputedOrDeclined = invokeurl
+			[
+				url :apiBaseUrl + "salesorders/" + soId + "/substatus/" + customDraftStatus + "?organization_id=" + orgId
+				type :POST
+				connection:"zinventory_conn"
+			];
+			info markSoAsDisputedOrDeclined;
+		}
+	}
+}
+catch (error)
+{
+	sendmail
+	[
+		from :zoho.adminuserid
+		to :"althon.tomada@devtac.com"
+		subject :"MH ZFlow Offer Eligibility Status Sync Error"
+		message :error
+	]
+}
+}

@@ -1,0 +1,129 @@
+// 03-05-2025 Version 1.0
+void createSalesOrder(map offerPayload)
+{
+    try 
+    {
+        orgId = 858967474;
+        apiBaseUrl = "https://www.zohoapis.com/inventory/v1/";
+        offerArn = offerPayload.get("ARN");
+        offerProductName = offerPayload.get("Product_Name");
+        offerProvider = offerPayload.get("Provider");
+        offerProductVertical = offerPayload.get("Product_Vertical");
+        offerCustomerId = offerPayload.get("Customer").get("ID");
+        // Althon ID
+        defaultOwnerId = 5425096000001759912;
+        orderOwner = invokeurl
+        [
+            url :apiBaseUrl + "users?organization_id=" + orgId + "&email=" + offerPayload.get("Order_Owner_Email")
+            type :GET
+            connection:"zinventory_conn"
+        ];
+        if(orderOwner.get("users").size() > 0)
+        {
+            offerOwnerId = orderOwner.get("users").getJSON("user_id");
+        }
+        offerFinanceProduct = offerPayload.get("Financial_Product");
+        offerRewards = offerPayload.get("Rewards");
+        for each  offerReward in offerRewards
+        {
+            rewardId = offerReward.get("Reward_ID");
+            rewardZinvId = offerReward.get("Reward_Item_ZInv_ID");
+            rewardRedemptionCode = offerReward.get("Redemption_Code");
+            rewardEndDate = offerReward.get("End_Date");
+            rewardRedemptionCenter = offerReward.get("Redemption_Center");
+            rewardMarket = offerReward.get("Market");
+            rewardDeliveryMethod = offerReward.get("Delivery_Method");
+            rewardLeadID = offerReward.get("Lead_ID");
+            rewardZinvItem = invokeurl
+            [
+                url :apiBaseUrl + "items/" + rewardZinvId + "?organization_id=" + orgId
+                type :GET
+                connection:"zinventory_conn"
+            ];
+            if(rewardZinvItem.get("code").equals(0))
+            {
+                item = rewardZinvItem.get("item");
+                itemName = item.get("name");
+                itemRewardType = item.get("custom_field_hash").get("cf_reward_type");
+                warehouses = invokeurl
+                [
+                    url :apiBaseUrl + "settings/warehouses?organization_id=" + orgId
+                    type :GET
+                    connection:"zinventory_conn"
+                ];
+                for each  warehouse in warehouses.get("warehouses")
+                {
+                    warehouseName = warehouse.get("warehouse_name");
+                    if(warehouseName.equalsIgnoreCase(rewardRedemptionCenter))
+                    {
+                        warehouseId = warehouse.get("warehouse_id");
+                        addressList = List();
+                        addressList.add(warehouse.get("address1"));
+                        addressList.add(warehouse.get("address2"));
+                        addressList.add(warehouse.get("city"));
+                        addressList.add(warehouse.get("state"));
+                        addressList.add(warehouse.get("state_code"));
+                        addressList.add(warehouse.get("country"));
+                        addressList.add(warehouse.get("zip"));
+                        addressList.removeAll({""});
+                        warehouseAddress = addressList.toString(", ");
+                        urlToCheck = warehouse.get("attention");
+                        regexPattern = "^(https?|ftp)://[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}(:[0-9]+)?(/.*)?$";
+                        isValid = urlToCheck.matches(regexPattern);
+                        warehouseWebsite = if(isValid,warehouse.get("attention"),null);
+                        warehousePhone = warehouse.get("phone");
+                        break;
+                    }
+                }
+                soCreationCustomFields = List();
+                soCreationLineItems = List();
+                soCreationParam = Map();
+                // Custom Fields
+                soCreationCustomFields.add({"label":"Product Name","value":offerProductName});
+                soCreationCustomFields.add({"label":"Provider","value":offerProvider});
+                soCreationCustomFields.add({"label":"Market","value":ifNull(rewardMarket,"Sinagpore")});
+                soCreationCustomFields.add({"label":"Reward Type","value":itemRewardType});
+                soCreationCustomFields.add({"label":"Order Owner","value":ifNull(offerOwnerId,defaultOwnerId)});
+                soCreationCustomFields.add({"label":"Redemption Center","value":rewardRedemptionCenter});
+                soCreationCustomFields.add({"label":"Product Vertical","value":offerProductVertical});
+                soCreationCustomFields.add({"label":"Redemption Code","value":rewardRedemptionCode});
+                soCreationCustomFields.add({"label":"Financial Product","value":ifNUll(offerFinanceProduct,"")});
+                soCreationCustomFields.add({"label":"Tracker UID","value":rewardId});
+                soCreationCustomFields.add({"label":"Item Name","value":itemName});
+                soCreationCustomFields.add({"label":"Warehouse Address","value":warehouseAddress});
+                soCreationCustomFields.add({"label":"Warehouse Contact Number","value":warehousePhone});
+                soCreationCustomFields.add({"label":"Warehouse Website","value":ifNull(warehouseWebsite,"")});
+                soCreationCustomFields.add({"label":"Lead ID","value":rewardLeadID});
+                soCreationCustomFields.add({"label":"Redemption Expiry Date","value":rewardEndDate.toString("YYY-mm-dd")});
+                // Line Item Fields
+                soCreationLineItems.add({"item_id":rewardZinvId,"rate":0,"quantity":1,"warehouse_id":warehouseId});
+                // Native Fields
+                soCreationParam.put("reference_number",offerArn);
+                soCreationParam.put("customer_id",offerCustomerId);
+                soCreationParam.put("delivery_method",rewardDeliveryMethod);
+                soCreationParam.put("warehouse_id",warehouseId);
+                soCreationParam.put("custom_fields",soCreationCustomFields);
+                soCreationParam.put("custom_fields",soCreationCustomFields);
+                soCreationParam.put("line_items",soCreationLineItems);
+                soCreation = invokeurl
+                [
+                    url :apiBaseUrl + "salesorders?organization_id=" + orgId
+                    type :POST
+                    parameters:soCreationParam.toString()
+                    connection:"zinventory_conn"
+                ];
+                info soCreation;
+            }
+        }
+    }
+    catch (error)
+    {
+        sendmail
+        [
+            from: zoho.adminuserid
+            to: "althon.tomada@devtac.com"
+            subject: "MH ZFlow Offer to SO Sync Error"
+            message:error
+        ]
+    }
+}

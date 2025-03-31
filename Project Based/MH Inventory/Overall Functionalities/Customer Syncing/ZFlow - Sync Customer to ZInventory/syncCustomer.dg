@@ -1,4 +1,4 @@
-payload = {
+customer = {
   "Email": "gabbyfajutag@gmail.com",
   "First_Name": "Jhon",
   "Last_Name": "Doe",
@@ -12,19 +12,19 @@ payload = {
   "Country":"United States"
 };
 
-void syncCustomer(Map payload)
+void syncCustomer(Map customer)
 {
-    customerEmail = payload.get("Email");
-    customerFirstName = payload.get("First_Name");
-    customerLastName = payload.get("Last_Name");
-    customerPhoneNumber = payload.get("Phone_Number");
-    customerMobileNumber = payload.get("Mobile_Number");
-    customerAddressLine1 = payload.get("Address_Line_1");
-    customerAddressLine2 = payload.get("Address_Line_2");
-    customerCity = payload.get("City");
-    customerState = payload.get("State");
-    customerZIPCode = payload.get("ZIP_Code");
-    customerCountry = payload.get("Country");
+    customerEmail = customer.get("Email");
+    customerFirstName = customer.get("First_Name");
+    customerLastName = customer.get("Last_Name");
+    customerPhoneNumber = customer.get("Phone_Number");
+    customerMobileNumber = customer.get("Mobile_Number");
+    customerAddressLine1 = customer.get("Address_Line_1");
+    customerAddressLine2 = customer.get("Address_Line_2");
+    customerCity = customer.get("City");
+    customerState = customer.get("State");
+    customerZIPCode = customer.get("ZIP_Code");
+    customerCountry = customer.get("Country");
     customerMap = Map();
     contactMap = Map();
     customerMap.put("first_name",customerFirstName);

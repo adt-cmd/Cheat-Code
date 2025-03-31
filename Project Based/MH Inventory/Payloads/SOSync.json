@@ -1,0 +1,42 @@
+{
+    "ARN": "DEVTAC-ZINV-FLOW-12345",
+    "Product_Name": "Sample Product Vertical",
+    "Provider": "DBS",
+    "Product_Vertical": "Credit Card",
+    "Order_Owner_Email": "althon.tomada@devtac.com",
+    "Financial_Product": "Test Financial Product",
+    "Customer": {
+        "ID":5425096000002199386
+    },
+    "Rewards": [
+        {
+            "Reward_ID": "X7dPqL9vTzW2",
+            "Reward_Item_ZInv_ID": 5425096000001948599,
+            "Lead_ID": "LEAD001-193612",
+            "Redemption_Code": "R101",
+            "Redemption_Expiry_Date": "30-Jan-2025",
+            "Redemption_Center": "Best Denki",
+            "Delivery_Method": "SDMethod",
+            "Market": "Singapore"
+        },
+        {
+            "Reward_ID": "mY8rKb3NwX6Q",
+            "Reward_Item_ZInv_ID": 5425096000001948731,
+            "Lead_ID": "LEAD002-219381",
+            "Redemption_Code": "R103",
+            "Redemption_Expiry_Date": "30-Jan-2025",
+            "Redemption_Center": "Shopee Pte. Ltd.",
+            "Market": "Singapore"
+        },
+        {
+            "Reward_ID": "Z5LpVqT7dJX9",
+            "Reward_Item_ZInv_ID": 5425096000002196260,
+            "Lead_ID": "LEAD003-120704",
+            "Redemption_Code": "R104",
+            "Redemption_Expiry_Date": "30-Jan-2025",
+            "Redemption_Center": "Short-Q",
+            "Delivery_Method": "AHSIUA",
+            "Market": "Singapore"
+        }
+    ]
+}

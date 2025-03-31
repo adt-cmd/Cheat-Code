@@ -1,0 +1,43 @@
+template = "967gya412ce624b41413f846e10dbe9e8b3c2";
+sampleArray = {
+	{
+		"col_1": "record 1",
+		"col_2": "record 1.2",
+		"col_3": "record 1.3"
+	},
+	{
+		"col_1": "record 2",
+		"col_2": "record 2.2",
+		"col_3": "record 2.3"
+	},
+	{
+		"col_1": "record 3",
+		"col_2": "record 3.2",
+		"col_3": "record 3.3"
+	}
+};
+subList = List();
+for each record in sampleArray
+{
+    subRowMap = Map();
+    subRowMap.put("Hello_World.Sample_Col_1", record.get("col_1"));
+    subRowMap.put("Hello_World.Sample_Col_2", record.get("col_2"));
+	subRowMap.put("Hello_World.Sample_Col_3", record.get("col_3"));
+	subList.add(subRowMap);
+}
+hello = zoho.writer.getMergeFields(template,"writer_connection");
+fields = hello.get("fields");
+info fields;
+mergevalues = Map();
+dataMap = Map();
+mergeData = Map();
+
+mergeData.put("id", 5815521000013909001);
+mergeData.put("Hello_World", subList);
+mergeData.put("Owner", "Hello Word");
+mergevalues.put("data", mergeData);
+dataMap.put("merge_data", mergevalues);
+info mergevalues;
+response = zoho.writer.mergeAndSend(template, "pdf", "althon.devtac@gmail.com", dataMap, "writer_connection");
+info response;
+return "";

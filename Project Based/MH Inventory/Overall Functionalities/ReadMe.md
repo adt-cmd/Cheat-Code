@@ -58,3 +58,53 @@ Offer marked as To be Delivered/Pending Redemption/Fulfilled
             - To be Delivered - To be Shipped
             - Pending Redemption - Shipped
             - Fulfilled - Fulfilled
+
+Offer Syncing Payload
+{
+    "ARN": "DEVTAC-ZINV-FLOW-12345",
+    "Product_Name": "Sample Product Vertical",
+    "Provider": "DBS",
+    "Product_Vertical": "Credit Card",
+    "Customer": {
+        "Email": "althon.devtac@gmail.com",
+        "First_Name": "DEVTAC JHON",
+        "Last_Name": "DOE",
+        "Phone_Number": "09123456789",
+        "Mobile_Number": "09876543213",
+        "Address_Line_1": "Market Street",
+        "Address_Line_2": "Suite 800",
+        "City": "New York",
+        "State": "NY",
+        "ZIP_Code": "10001",
+        "Country":"United States"
+    },
+    "Rewards": [
+        {
+            "Reward_ID": 1234567890,
+            "Reward_Item_ZInv_ID": 5425096000001948599,
+            "Quantity": 1,
+            "Redemption_Code": "R101",
+            "End_Date": "30-Jan-2025",
+            "Redemption_Center": "Best Denki",
+            "Market": "Singapore"
+        },
+        {
+            "Reward_ID": 4567891011,
+            "Reward_Item_ZInv_ID": 5425096000001948731,
+            "Quantity": 1,
+            "Redemption_Code": "R103",
+            "End_Date": "30-Jan-2025",
+            "Redemption_Center": "Shopee Pte. Ltd.",
+            "Market": "Singapore"
+        },
+        {
+            "Reward_ID": 7891011121,
+            "Reward_Item_ZInv_ID": 5425096000002196260,
+            "Quantity": 1,
+            "Redemption_Code": "R104",
+            "End_Date": "30-Jan-2025",
+            "Redemption_Center": "Short-Q",
+            "Market": "Singapore"
+        }
+    ]
+}

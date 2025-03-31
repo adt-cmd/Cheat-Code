@@ -17,9 +17,17 @@ payload = {
     {
       "Reward_ID": 456,
       "Reward_Type": "Digital",
-      "Reward_Item_ZInv_ID": 4227625000008410005,
+      "Reward_Item_ZInv_ID": 4227625000008410049,
       "Quantity": 1,
-      "Redemption_Code": "R101",
+      "Redemption_Code": "R103",
+      "End_Date": "30-Jan-2025"
+    },
+	{
+      "Reward_ID": 789,
+      "Reward_Type": "Physical",
+      "Reward_Item_ZInv_ID": 4227625000008398027,
+      "Quantity": 1,
+      "Redemption_Code": "R104",
       "End_Date": "30-Jan-2025"
     }
   ]
