@@ -1,0 +1,6 @@
+// 1-10 seconds
+delayNextAPICall = invokeurl
+[
+	url :"https://postman-echo.com/delay/1"
+	type :GET
+];

@@ -1,0 +1,17 @@
+waterBill = invokeurl
+[
+	url :"https://www.zohoapis.com/crm/v7/BF_EAST/" + id
+	type :GET
+	connection:"crm_oauth_connection"
+];
+waterBillProofOfPayment = waterBill.get("data").get(0).get("Proof_of_Payment").size();
+if(waterBillProofOfPayment > 0)
+{
+	updateRecord = zoho.crm.updateRecord("BF_EAST",id,{"Proof_of_Payment_Uploaded":true});
+	info "POP Present";
+}
+else
+{
+	updateRecord = zoho.crm.updateRecord("BF_EAST",id,{"Proof_of_Payment_Uploaded":false});
+	info "POP Not Present";
+}
