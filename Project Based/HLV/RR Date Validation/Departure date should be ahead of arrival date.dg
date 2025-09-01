@@ -1,0 +1,62 @@
+map validation_rule.Departure_date_should_be_ahead_of_Arrival_Date6(String crmAPIRequest)
+{
+entityMap = crmAPIRequest.toMap().get("record");
+depDate = entityMap.get("Departure_day_time");
+arrivalDate = entityMap.get("Arrival_day_time");
+depDate1 = entityMap.get("Departure_day_time");
+arrivalDate1 = entityMap.get("Arrival_day_time");
+response = Map();
+/* ---------------------------------------------------------------------------------------------- */
+/* Start writing your code here to perform the necessary field validation                         */
+if(arrivalDate.toString() == "" && depDate.toString() == "" || arrivalDate == null && depDate == null)
+{
+	info depDate;
+	response.put('status','success');
+}
+else if(arrivalDate.toString() != "" && depDate.toString() != "")
+{
+	if(arrivalDate.getMonth() < depDate.getMonth())
+	{
+		response.put('status','error');
+		response.put('message','Departure date must be ahead of Arrival date');
+	}
+	else if(arrivalDate.getMonth() == depDate.getMonth())
+	{
+		if(arrivalDate.getDay() < depDate.getDay())
+		{
+			response.put('status','error');
+			response.put('message','Departure date must be ahead of Arrival date');
+		}
+		else if(arrivalDate.getDay() == depDate.getDay())
+		{
+			if(depDate1.replaceAll("T"," ").toString("MM-dd-yyyy HH:mm:ss","America/Fort_Wayne") == arrivalDate1.replaceAll("T"," ").toString("MM-dd-yyyy HH:mm:ss","America/Fort_Wayne"))
+			{
+				response.put('status','error');
+				response.put('message','Departure date must be ahead of Arrival date');
+			}
+			else if(depDate1.replaceAll("T"," ").toString("MM-dd-yyyy HH:mm:ss","America/Fort_Wayne").timeBetween(arrivalDate1.replaceAll("T"," ").toString("MM-dd-yyyy HH:mm:ss","America/Fort_Wayne")) == "")
+			{
+				response.put('status','success');
+			}
+			else
+			{
+				response.put('status','error');
+				response.put('message','Departure date must be ahead of Arrival date');
+			}
+		}
+		else
+		{
+			response.put('status','success');
+		}
+	}
+	else
+	{
+		response.put('status','success');
+	}
+}
+else
+{
+	response.put('status','success');
+}
+return response;
+}

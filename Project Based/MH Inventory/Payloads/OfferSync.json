@@ -52,3 +52,50 @@
 // "State": "NY",
 // "ZIP_Code": "10001",
 // "Country":"United States"
+
+{
+    "ARN": "DEVTAC-ZINV-FLOW-12345",
+    "Product_Name": "Sample Product Vertical",
+    "Provider": "DBS",
+    "Product_Vertical": "Credit Card",
+    "Order_Owner_Email": "althon.tomada@devtac.com",
+    "Financial_Product": "Test Financial Product",
+    "Customer": {
+        "Email": "althon.devtac@gmail.comyyy",
+        "First_Name": "DEVTAC JHON",
+        "Last_Name": "DOE",
+        "Phone_Number": "09123456789",
+        "Mobile_Number": "09876543213"
+    },
+    "Rewards": [
+        {
+            "Reward_ID": "X7dPqL9vTzW2",
+            "Reward_Item_ZInv_ID": 5425096000001948599,
+            "Lead_ID": "LEAD001-193612",
+            "Redemption_Code": "R101",
+            "Market": "Singapore"
+        },
+        {
+            "Reward_ID": "mY8rKb3NwX6Q",
+            "Reward_Item_ZInv_ID": 5425096000001948731,
+            "Lead_ID": "LEAD002-219381",
+            "Market": "Singapore"
+        },
+        {
+            "Reward_ID": "Z5LpVqT7dJX9",
+            "Reward_Item_ZInv_ID": 5425096000002196260,
+            "Lead_ID": "LEAD003-120704",
+            "Redemption_Code": "R104",
+            "Market": "Singapore"
+        }
+    ]
+}
+
+// Customer Optional
+// "Address_Line_1": "Market Street",
+// "Address_Line_2": "Suite 800",
+// "City": "New York",
+// "State": "NY",
+// "ZIP_Code": "10001",
+// "Country":"United States"
+

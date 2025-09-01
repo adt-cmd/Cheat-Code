@@ -15,7 +15,7 @@ zoho.inventory.getRecordsByID("salesorders", orgId, recordId, connection);
 // with criteria
 
 invokeurl [
-    url: "https://https://www.zohoapis.com/inventory/v1/salesorders?custom_field_2574283000005*****6_contains=123&organization_id=<organization_id>"
+    url: "https://www.zohoapis.com/inventory/v1/salesorders?custom_field_2574283000005*****6_contains=123&organization_id=<organization_id>"
     type: GET
     connection: "zinv"
 ];

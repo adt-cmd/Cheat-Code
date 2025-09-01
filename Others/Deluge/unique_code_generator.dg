@@ -19,3 +19,23 @@
    info v_Output;
 
    // Reference: https://www.joellipman.com/articles/crm/zoho/zoho-deluge-generate-5-letter-booking-retrieval-code.html
+
+
+   	x = 8;
+	myList = {0,1,2,3,4,5,6,7,8,9,10,11,12};
+	passString = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+	newList = {};
+	//
+	for each index i in myList
+	{
+	if(i < x)
+	{
+	//myList.add(i);
+	randnum = randomNumber(1,62);
+	newList.add(substring(passString,randnum,randnum + 1));
+	}
+	}
+	password = replaceAll(newList,",","");
+	info password;
+
+    

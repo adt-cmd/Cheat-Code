@@ -1,0 +1,243 @@
+// Mar 06, 2025
+map syncCustomer(map offerPayload)
+{
+try 
+{
+	orgId = 858967474;
+	apiBaseUrl = "https://www.zohoapis.com/inventory/v1/";
+	customer = offerPayload.get("Customer");
+	customerEmail = customer.get("Email");
+	customerFirstName = customer.get("First_Name");
+	customerLastName = customer.get("Last_Name");
+	customerPhoneNumber = customer.get("Phone_Number");
+	customerMobileNumber = customer.get("Mobile_Number");
+	customerAddressLine1 = customer.get("Address_Line_1");
+	customerAddressLine2 = customer.get("Address_Line_2");
+	customerCity = customer.get("City");
+	customerState = customer.get("State");
+	customerZIPCode = customer.get("ZIP_Code");
+	customerCountry = customer.get("Country");
+	customerMap = Map();
+	contactMap = Map();
+	customerMap.put("first_name",customerFirstName);
+	customerMap.put("last_name",customerLastName);
+	customerMap.put("phone",customerPhoneNumber);
+	customerMap.put("mobile",customerMobileNumber);
+	contactMap.put("contact_name",customerFirstName + " " + customerLastName);
+	contactMap.put("contact_type","customer");
+	contactMap.put("customer_sub_type ","individual");
+	customer = invokeurl
+	[
+		url :apiBaseUrl + "contacts?organization_id=" + orgId + "&email_startswith=" + customerEmail
+		type :GET
+		connection:"zinventory_conn"
+	];
+	for each  contact in customer.get("contacts")
+	{
+		if(contact.get("email").equalsIgnoreCase(customerEmail))
+		{
+			contactId = contact.get("contact_id");
+			contactPersons = invokeurl
+			[
+				url :apiBaseUrl + "contacts/" + contact.get("contact_id") + "/contactpersons?organization_id=" + orgId
+				type :GET
+				connection:"zinventory_conn"
+			];
+		}
+	}
+	if(contactId.isNull())
+	{
+		// Create new customer/contact
+		customerMap.put("email",customerEmail);
+		createContact = invokeurl
+		[
+			url :apiBaseUrl + "contacts?organization_id=" + orgId
+			type :POST
+			parameters:contactMap.toString()
+			connection:"zinventory_conn"
+		];
+		info "Contact Created";
+		info createContact;
+		if(createContact.get("code") == 0)
+		{
+			contactId = createContact.get("contact").get("contact_id");
+			customerMap.put("contact_id",contactId);
+			createContactPerson = invokeurl
+			[
+				url :apiBaseUrl + "contacts/contactpersons?organization_id=" + orgId
+				type :POST
+				parameters:customerMap.toString()
+				connection:"zinventory_conn"
+			];
+			info createContactPerson;
+		}
+	}
+	else
+	{
+		for each  contactPerson in contactPersons.get("contact_persons")
+		{
+			if(contactPerson.get("email").equalsIgnoreCase(customerEmail))
+			{
+				contactPersonId = contactPerson.get("contact_person_id");
+				break;
+			}
+		}
+		// Update existing customer/contact
+		updateContactPerson = invokeurl
+		[
+			url :apiBaseUrl + "contacts/contactpersons/" + contactPersonId + "?organization_id=" + orgId
+			type :PUT
+			parameters:customerMap.toString()
+			connection:"zinventory_conn"
+		];
+		updateContact = invokeurl
+		[
+			url :apiBaseUrl + "contacts/" + contactId + "?organization_id=" + orgId
+			type :PUT
+			parameters:contactMap.toString()
+			connection:"zinventory_conn"
+		];
+		info "Contact and Customer Updated";
+		// 	info updateContactPerson;
+		info updateContact;
+		contactId = updateContact.get("contact").get("contact_id");
+	}
+	offerPayload.put("Customer",{"ID":contactId});
+	return offerPayload;
+}
+catch (error)
+{
+	sendmail
+	[
+		from :zoho.adminuserid
+		to :"althon.tomada@devtac.com"
+		subject :"MH ZFlow Offer Customer/Contact Sync Error"
+		message :error
+	]
+}
+return Map();
+}
+
+// v2 June 05, 2025
+map syncCustomer(map offerPayload)
+{
+orgId = 858967474;
+apiBaseUrl = "https://www.zohoapis.com/inventory/v1/";
+customer = offerPayload.get("Customer");
+customerEmail = customer.get("Email");
+customerFirstName = customer.get("First_Name");
+customerLastName = customer.get("Last_Name");
+customerPhoneNumber = customer.get("Phone_Number");
+customerMobileNumber = customer.get("Mobile_Number");
+customerAddressLine1 = customer.get("Address_Line_1");
+customerAddressLine2 = customer.get("Address_Line_2");
+customerCity = customer.get("City");
+customerState = customer.get("State");
+customerZIPCode = customer.get("ZIP_Code");
+customerCountry = customer.get("Country");
+customerMap = Map();
+contactMap = Map();
+customerMap.put("first_name",customerFirstName);
+customerMap.put("last_name",customerLastName);
+customerMap.put("phone",customerPhoneNumber);
+customerMap.put("mobile",customerMobileNumber);
+contactMap.put("contact_name",customerFirstName + " " + customerLastName);
+contactMap.put("contact_type","customer");
+contactMap.put("customer_sub_type ","individual");
+customer = invokeurl
+[
+	url :apiBaseUrl + "contacts?organization_id=" + orgId + "&email_startswith=" + customerEmail
+	type :GET
+	connection:"zinventory_conn"
+];
+for each  contact in customer.get("contacts")
+{
+	if(contact.get("email").equalsIgnoreCase(customerEmail))
+	{
+		contactId = contact.get("contact_id");
+		contactPersons = invokeurl
+		[
+			url :apiBaseUrl + "contacts/" + contact.get("contact_id") + "/contactpersons?organization_id=" + orgId
+			type :GET
+			connection:"zinventory_conn"
+		];
+	}
+}
+if(contactId.isNull())
+{
+	// Create new customer/contact
+	customerMap.put("email",customerEmail);
+	createContact = invokeurl
+	[
+		url :apiBaseUrl + "contacts?organization_id=" + orgId
+		type :POST
+		parameters:contactMap.toString()
+		connection:"zinventory_conn"
+	];
+	info "Contact Creation";
+	info createContact;
+	if(createContact.get("code") !=0)
+	{
+		throws "Contact Creation Error";
+	}
+	if(createContact.get("code") == 0)
+	{
+		contactId = createContact.get("contact").get("contact_id");
+		customerMap.put("contact_id",contactId);
+		createContactPerson = invokeurl
+		[
+			url :apiBaseUrl + "contacts/contactpersons?organization_id=" + orgId
+			type :POST
+			parameters:customerMap.toString()
+			connection:"zinventory_conn"
+		];
+		info "Contact Person Creation";
+		info createContactPerson;
+		if(createContactPerson.get("code") !=0)
+		{
+			throws "Contact Person Creation Error";
+		}
+	}
+}
+else
+{
+	for each  contactPerson in contactPersons.get("contact_persons")
+	{
+		if(contactPerson.get("email").equalsIgnoreCase(customerEmail))
+		{
+			contactPersonId = contactPerson.get("contact_person_id");
+			break;
+		}
+	}
+	// Update existing customer/contact
+	updateContactPerson = invokeurl
+	[
+		url :apiBaseUrl + "contacts/contactpersons/" + contactPersonId + "?organization_id=" + orgId
+		type :PUT
+		parameters:customerMap.toString()
+		connection:"zinventory_conn"
+	];
+	info "Contact Person Update";
+	info updateContactPerson;
+	if(updateContactPerson.get("code") !=0)
+	{
+		throws "Contact Person Update Error";
+	}
+	updateContact = invokeurl
+	[
+		url :apiBaseUrl + "contacts/" + contactId + "?organization_id=" + orgId
+		type :PUT
+		parameters:contactMap.toString()
+		connection:"zinventory_conn"
+	];
+	info "Contact Update";
+	info updateContact;
+	if(updateContact.get("code") !=0)
+	{
+		throws "Contact Update Error";
+	}
+	contactId = updateContact.get("contact").get("contact_id");
+}
+offerPayload.put("Customer",{"ID":contactId});
+return offerPayload;
+}
