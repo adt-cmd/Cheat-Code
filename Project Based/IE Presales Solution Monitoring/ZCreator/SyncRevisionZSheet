@@ -1,0 +1,118 @@
+if(!input.Actual_Completion_Date.isNull())
+{
+	input.Assessment_SLA = if(input.Actual_Completion_Date <= input.Target_Completion_Date,"Within","Beyond");
+}
+else
+{
+	input.Assessment_SLA = "Pending";
+}
+//
+complexity = input.Complexity;
+if(complexity.equals("Low Complexity"))
+{
+	input.Target_SLA = "1-2 Business Days";
+}
+else if(complexity.equals("Medium Complexity"))
+{
+	input.Target_SLA = "3-5 Business Days";
+}
+else if(complexity.equals("High Complexity"))
+{
+	input.Target_SLA = "5-7 Business Days";
+}
+//
+resourceId = "g0bmh0476e83450f64e23a7139ef1f098fab1";
+workSheetName = "Sheet1";
+// Solutioning Syncing ---Start---
+revisionId = input.ID;
+revision = Revisions[ID == revisionId];
+projectId = revision.Project.ID;
+revisionProjectId = revision.Project.ID;
+revisionNumber = revision.Revision_Number.toLong();
+projectOverallHrs = revision.Project_Overall_Hrs;
+// Set Starting Point(Column) ---Start---
+if(revisionNumber.equals(0))
+{
+	startingColumn = 4;
+}
+else if(revisionNumber.equals(1))
+{
+	startingColumn = 10;
+}
+else if(revisionNumber.equals(2))
+{
+	startingColumn = 16;
+}
+else if(revisionNumber.equals(3))
+{
+	startingColumn = 22;
+}
+else if(revisionNumber.equals(4))
+{
+	startingColumn = 28;
+}
+// Set Starting Point(Column) ---End---
+if(!startingColumn.isNull() && !projectId.isNull())
+{
+	// Find Project Row via Project ID ---Start---
+	paramMap = Map();
+	paramMap.put('method','find');
+	paramMap.put('search',revisionProjectId);
+	paramMap.put('scope','workbook');
+	paramMap.put('is_case_sensitive','true');
+	paramMap.put('is_exact_match','true');
+	projectLocation = invokeurl
+	[
+		url :"https://sheet.zoho.com/api/v2/" + resourceId
+		type :POST
+		parameters:paramMap
+		connection:"zapp_conn"
+	];
+	if(!projectLocation.get('cells').isNull())
+	{
+		projectRow = projectLocation.get('cells').get(0).get('row_index');
+	}
+	// Find Project Row via Project ID ---End---
+	if(!projectRow.isNull() && !projectRow.equals(""))
+	{
+		// Populate Solutioning Information ---Start---
+		revisionFields = Map();
+		revisionFields.put('SSD',{'value':if(revision.Start_Date.isNull(),revision.Start_Date,revision.Start_Date.toString("MMM dd, yyyy")),'col':0});
+		revisionFields.put('SCD',{'value':if(revision.Actual_Completion_Date.isNull(),revision.Actual_Completion_Date,revision.Actual_Completion_Date.toString("MMM dd, yyyy")),'col':1});
+		revisionFields.put('SD',{'value':revision.Solutioning_Days,'col':2});
+		revisionFields.put('TCD',{'value':if(revision.Target_Completion_Date.isNull(),revision.Target_Completion_Date,revision.Target_Completion_Date.toString("MMM dd, yyyy")),'col':3});
+		revisionFields.put('STS',{'value':revision.Target_SLA,'col':4});
+		revisionFields.put('ASLA',{'value':revision.Assessment_SLA,'col':5});
+		paramMap = Map();
+		paramMap.put('method','cell.content.set');
+		paramMap.put('row',projectRow);
+		paramMap.put('worksheet_name',workSheetName);
+		paramMap.put('column',3);
+		paramMap.put('content',projectOverallHrs);
+		cellUpdate = invokeurl
+		[
+			url :"https://sheet.zoho.com/api/v2/" + resourceId
+			type :POST
+			parameters:paramMap
+			connection:"zapp_conn"
+		];
+		for each  revisionField in revisionFields
+		{
+			startingPoint = startingColumn + revisionField.get('col');
+			paramMap.put('column',startingPoint);
+			paramMap.put('content',revisionField.get('value'));
+			cellUpdate = invokeurl
+			[
+				url :"https://sheet.zoho.com/api/v2/" + resourceId
+				type :POST
+				parameters:paramMap
+				connection:"zapp_conn"
+			];
+		}
+		// Populate Solutioning Information ---End---
+	}
+}
+// Solutioning Syncing ---End---
+//
+revisionProject = Projects[ID == input.Project];
+revisionProject.Number_of_Revisions=Revisions[Project == input.Project].count() - 1;

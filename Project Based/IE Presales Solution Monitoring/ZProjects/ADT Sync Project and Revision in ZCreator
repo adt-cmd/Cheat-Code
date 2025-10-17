@@ -1,0 +1,89 @@
+// Fetching Custom Fieds ----------------------------Start--------------------------------------
+// customFieldList = invokeurl 
+// [
+// 	url: "https://projectsapi.zoho.com/restapi/portal/"+portalId+"/projects/"+projectId+"/tasklayouts"
+// 	type: GET
+// 	connection: "zapp_conn"
+// ];
+// info customFieldList;
+// Fetching Custom Fieds ----------------------------End--------------------------------------
+// Task Revision Update ----------------------------Start--------------------------------------
+noOfRevisions = if(noOfRevisions.isNull(),0,noOfRevisions.toLong() + 1);
+numberOfRevisionFieldID = "UDF_LONG2";
+solutioningCompletionDateFieldID = "UDF_DATE20";
+targetCompletionDateFieldID = "UDF_DATE22";
+if(complexity.equals("Low Complexity"))
+{
+	numberOfBusinessDays = 1;
+}
+else if(complexity.equals("Medium Complexity"))
+{
+	numberOfBusinessDays = 4;
+}
+else if(complexity.equals("High Complexity"))
+{
+	numberOfBusinessDays = 6;
+}
+targetCompletionDate = addBusinessDay(stageDate.toDate(),numberOfBusinessDays);
+taskUpdateMap = Map();
+customFieldUpdateMap = Map();
+customFieldUpdateMap.put(numberOfRevisionFieldID,noOfRevisions);
+customFieldUpdateMap.put(targetCompletionDateFieldID,targetCompletionDate.toString("MM-dd-yyyy"));
+customFieldUpdateMap.put(solutioningCompletionDateFieldID,"");
+taskUpdateMap.put('custom_fields',customFieldUpdateMap);
+taskUpdate = zoho.projects.update(portalId,projectId,"Tasks",taskId,taskUpdateMap,"zapp_conn");
+info taskUpdate;
+// Task Revision Update ----------------------------End--------------------------------------
+ownerName = "devtac125";
+appLinkName = "presales-solutioning-monitoring";
+// Task Project Syncing to ZCreator ----------------------------Start--------------------------------------
+projectFormLinkName = "Projects";
+projectReportLinkName = "All_Projects";
+projectSyncMap = Map();
+projectSyncMap.put('Project_Name',taskName);
+projectSyncMap.put('Complexity',complexity);
+existingProjectRecord = zoho.creator.getRecords(ownerName,appLinkName,projectReportLinkName,"ZProject_Task_ID ==\"" + taskId.toString() + "\"",1,1,"zapp_conn");
+if(!existingProjectRecord.get('data').isNull())
+{
+	existingProjectRecordID = existingProjectRecord.get('data').getJSON('ID');
+	syncProject = zoho.creator.updateRecord(ownerName,appLinkName,projectReportLinkName,existingProjectRecordID,projectSyncMap,Map(),"zapp_conn");
+	info {"Project Update Sync":syncProject};
+}
+else
+{
+	projectSyncMap.put('ZProject_Task_ID',taskId);
+	syncProject = zoho.creator.createRecord(ownerName,appLinkName,projectFormLinkName,projectSyncMap,Map(),"zapp_conn");
+	info {"Project Creation Sync":syncProject};
+}
+// Task Project Syncing to ZCreator ----------------------------End--------------------------------------
+// Revision Syncing to ZCreator -----------Start---------------
+revisionFormLinkName = "Revisions";
+revisionReportLinkName = "All_Revisions";
+revisionSyncMap = Map();
+revisionSyncMap.put('Revision_Number',noOfRevisions);
+revisionSyncMap.put('Complexity',complexity);
+revisionSyncMap.put('Start_Date',stageDate.toString("dd-MMM-yyyy"));
+revisionSyncMap.put('Target_Completion_Date',targetCompletionDate.toString("dd-MMM-yyyy"));
+revisionSyncMap.put('Project_Overall_Hrs',totalHrs);
+if(!existingProjectRecordID.isNull())
+{
+	existingRevisionRecord = zoho.creator.getRecords(ownerName,appLinkName,revisionReportLinkName,"(Project==" + existingProjectRecordID + ") && (Revision_Number==" + noOfRevisions + ")",1,1,"zapp_conn");
+	if(!existingRevisionRecord.get('data').isNull())
+	{
+		existingRevisionRecordID = existingRevisionRecord.get('data').getJSON('ID');
+		syncRevision = zoho.creator.updateRecord(ownerName,appLinkName,revisionReportLinkName,existingRevisionRecordID,revisionSyncMap,Map(),"zapp_conn");
+		info {"Revision Update Sync":syncRevision};
+	}
+	else
+	{
+		existingRevisionRecord = null;
+	}
+}
+if(existingRevisionRecord.isNull())
+{
+	revisionSyncMap.put('Project',syncProject.get('data').get('ID'));
+	syncRevision = zoho.creator.createRecord(ownerName,appLinkName,revisionFormLinkName,revisionSyncMap,Map(),"zapp_conn");
+	info {"Revision Creation Sync":syncRevision};
+}
+// Revision Syncing to ZCreator -----------End---------------
+return "success";

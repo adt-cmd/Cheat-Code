@@ -1,0 +1,64 @@
+resourceId = "g0bmh0476e83450f64e23a7139ef1f098fab1";
+workSheetName = "Sheet1";
+// Project Creation ---Start---
+projectId = input.ID;
+preSalesDashboardURL = "https://projects.zoho.com/portal/devtac125#zp/projects/1255149000016387223/tasks/custom-view/1255149000013405003/list/task-detail/";
+projectName = "=HYPERLINK(\"" + preSalesDashboardURL + input.ZProject_Task_ID + "\";\"" + input.Project_Name + "\")";
+// Find Project Row via Project ID ---Start---
+paramMap = Map();
+paramMap.put('method','find');
+paramMap.put('search',projectId);
+paramMap.put('scope','workbook');
+paramMap.put('is_case_sensitive','true');
+paramMap.put('is_exact_match','true');
+projectLocation = invokeurl
+[
+	url :"https://sheet.zoho.com/api/v2/" + resourceId
+	type :POST
+	parameters:paramMap
+	connection:"zapp_conn"
+];
+info {"Project Location":projectLocation};
+if(!projectLocation.get('cells').isEmpty())
+{
+	projectRow = projectLocation.get('cells').get(0).get('row_index');
+}
+// Find Project Row via Project ID ---End---
+if(!projectRow.isNull())
+{
+	paramMap = Map();
+	paramMap.put('method','cell.content.set');
+	paramMap.put('row',projectRow);
+	paramMap.put('worksheet_name',workSheetName);
+	paramMap.put('column',2);
+	paramMap.put('content',projectName);
+	projectRowCreation = invokeurl
+	[
+		url :"https://sheet.zoho.com/api/v2/" + resourceId
+		type :POST
+		parameters:paramMap
+		connection:"zapp_conn"
+	];
+	info {"Project Row Creation":projectRowCreation};
+}
+else
+{
+	paramMap = Map();
+	paramMap.put('method','worksheet.jsondata.append');
+	paramMap.put('worksheet_name',workSheetName);
+	paramMap.put('header_row',1);
+	dataList = List();
+	dataMap = Map();
+	dataMap.put('1',projectId);
+	dataMap.put('2',projectName);
+	dataList.add(dataMap);
+	paramMap.put('json_data',dataList);
+	projectRowUpdate = invokeurl
+	[
+		url :"https://sheet.zoho.com/api/v2/" + resourceId
+		type :POST
+		parameters:paramMap
+		connection:"zapp_conn"
+	];
+	info {"Project Row Update":projectRowUpdate};
+}
